@@ -35,7 +35,7 @@ flowchart LR
   Proxy -->|/api| API[Spring Boot app<br/>modular monolith]
   API --> PG[(PostgreSQL 17<br/>+ pgvector + pg_trgm)]
   API -->|embeddings| Ollama[Ollama<br/>local embedding model]
-  API -->|chat, JSON output| LLM[Chat model<br/>Ollama or OpenAI-compatible hosted]
+  API -->|chat, JSON output| LLM[Chat model<br/>Ollama in v1 · OpenAI-compatible hosted optional]
   API -->|clone public HTTPS / read allowed local roots| Git[(Git sources)]
   MCP([MCP client, stretch]) -.->|read-only tools| API
 ```
@@ -338,7 +338,7 @@ Every `{projectId}`-scoped handler and every lookup by `jobId`/`analysisId` goes
 | Cross-tenant data access | `ProjectAccessPolicy` everywhere; authz matrix test; IDs exposed are UUIDs |
 | Command injection | No shell. Git via JGit (in-process); any subprocess uses `ProcessBuilder` with an argument list, a fixed executable and a timeout |
 | CSRF / session theft | Spring Security CSRF (cookie token for SPA), `HttpOnly; Secure; SameSite=Lax` session cookie, session fixation protection |
-| Cost abuse | Per-user rate limits, max tokens, provider spending cap |
+| Cost abuse / local CPU exhaustion | Per-user rate limits, max tokens, context budget; provider spending cap only if a hosted provider is configured (v1 is local-only, ADR-0006) |
 
 ## 12. Observability
 - JSON logs (logstash encoder or Boot structured logging) with `correlationId`, `userId`, `projectId`, `jobId`. **No source code or prompts in logs.** Prompt logging is a `local`-profile-only debug flag.

@@ -35,7 +35,7 @@ If a task doesn't strengthen one of these five, it waits.
 | 5 | Model cites `filePath` + line numbers | Model cites **evidence IDs** (`E3`). The server maps them to path and lines and rejects unknown IDs. | This removes hallucinated paths and line numbers by construction. [ADR-0008](adr/0008-citation-by-evidence-id.md). |
 | 6 | Per-revision copies of files, symbols and chunks | **Content-addressed blobs.** Revisions map path → blob, and embeddings are reused across revisions. | Change analysis needs *two* indexed revisions. Without reuse, the head revision is re-embedded in full. [ADR-0003](adr/0003-content-addressed-storage.md). |
 | 7 | "Recommend tests" with no method given | Tests are found by deterministic reverse traversal (test method → … → changed symbol) plus naming conventions. They're **validated against failing tests from seeded mutations**. | This turns "suggested tests" from LLM guesswork into a measurable metric. [ADR-0011](adr/0011-evaluation-as-code.md). |
-| 8 | Ollama for local inference | **Local embeddings (Ollama)**, with chat through a configurable provider. Ollama is used for offline dev, and a hosted, OpenAI-compatible endpoint for benchmarks and the demo. | This laptop has no discrete GPU. CPU inference on 6k-token prompts takes minutes per answer, which makes a 50-question × 3-config benchmark impractical. [ADR-0006](adr/0006-ai-provider-port.md). |
+| 8 | Ollama for local inference | **Everything local on Ollama in v1**: embeddings and chat (owner's $0 decision in M0). Chat goes through a configurable provider, so a hosted OpenAI-compatible endpoint stays a config change if a budget appears. | Measured in M0: ~4.3 min per 4k-token answer on this CPU (no GPU). Accepted: eval runs overnight with a response cache, and the context budget is kept tight. [ADR-0006](adr/0006-ai-provider-port.md). |
 | 9 | Edge `confidence` number | Edge **`provenance` enum**: `STATIC_RESOLVED`, `STATIC_NAME_MATCH`, `HEURISTIC`, `LLM_INFERRED`. | A number invites fake precision. Provenance is what the "verified vs inferred" UI actually needs. |
 | 10 | Keyword search unspecified | Postgres FTS on **identifier-split text** with the `simple` config, plus `pg_trgm` on symbol names. | The default `english` config stems words and can't split `findOwnerById`. |
 | 11 | Product 1.2 = an agent that prepares patches | Product 1.2 = **read-only MCP server** + bounded agent loop. Patch generation is dropped. | Patch generation is a crowded space and risky. An MCP server is cheap, current, and reuses the tools you already built. [ADR-0012](adr/0012-mcp-and-bounded-agent.md). |
@@ -82,17 +82,19 @@ In M0, check each candidate's license, that `mvn test` passes at the pinned SHA,
 Each milestone ends with a Git tag (`m1`, `m2`, …), a green CI run, and a short entry in `docs/devlog.md` covering what was built, what broke, and what was measured. The devlog is your interview material.
 
 ### M0 — Pre-implementation (6–10 h). No product code.
-- [ ] Install toolchain: JDK 25 (Temurin), Maven wrapper (generated), Node LTS + npm, Docker Desktop (WSL2 backend), Ollama, IDE plugins (Spotless/Checkstyle, ESLint, Prettier).
-- [ ] `git init`, add `.gitattributes` (`* text=auto eol=lf`) **before the first commit**, `.gitignore`, `.editorconfig`. Create a GitHub repo.
-- [ ] **Hardware smoke test** (record results in the devlog):
+- [x] Install toolchain: JDK 25 (Temurin), Maven wrapper (generated), Node LTS + npm, Docker Desktop (WSL2 backend), Ollama, IDE plugins (Spotless/Checkstyle, ESLint, Prettier).
+- [x] `git init`, add `.gitattributes` (`* text=auto eol=lf`) **before the first commit**, `.gitignore`, `.editorconfig`. Create a GitHub repo.
+- [x] **Hardware smoke test** (record results in the devlog):
   - Ollama embedding model: time to embed 100 code chunks.
   - Ollama 7–8B chat model: tokens/sec and total latency for a 4k-token prompt + 400-token JSON answer.
-  - Hosted model (OpenAI-compatible endpoint) on the same prompt.
+  - ~~Hosted model (OpenAI-compatible endpoint) on the same prompt.~~ N/A: local-only decision (ADR-0006).
   - Lock the embedding model and dimension, and record the decision in ADR-0006.
-- [ ] Pick and pin target repos (§4). Run their tests locally and record runtimes.
-- [ ] **Seed the benchmark:** write 20 questions with expected files/symbols across all categories (architecture.md §13), including 3 abstention and 2 injection cases. Read the code to label them, not the tool.
-- [ ] Write `docs/threat-model.md` v0 (assets, trust boundaries, top 10 threats, mitigations → rule IDs).
-- [ ] Set a hosted-LLM spending cap on the provider dashboard.
+- [x] Pick and pin target repos (§4). Run their tests locally and record runtimes.
+- [x] **Seed the benchmark:** write 20 questions with expected files/symbols across all categories (architecture.md §13), including 3 abstention and 2 injection cases. Read the code to label them, not the tool.
+- [x] Write `docs/threat-model.md` v0 (assets, trust boundaries, top 10 threats, mitigations → rule IDs).
+- [x] ~~Set a hosted-LLM spending cap on the provider dashboard.~~ N/A: local-only decision (ADR-0006).
+
+M0 closed 2026-11-07 (tag `m0`). Results and deviations are in [devlog.md](devlog.md).
 
 **Exit:** the toolchain works, models are measured, the embedding model is locked, 20 labelled questions are committed, and the threat model v0 is committed.
 
@@ -168,7 +170,7 @@ Each milestone ends with a Git tag (`m1`, `m2`, …), a green CI run, and a shor
 - [ ] Metrics dashboard (Actuator/Micrometer) and an LLM cost summary from `llm_call`.
 - [ ] README: problem, demo GIF, architecture diagram, **results table from committed reports**, limitations, how to reproduce, trade-offs (link the ADRs).
 - [ ] `docs/demo-script.md`, a 3–4 minute recorded demo, and `docs/evaluation.md` (method + results + failure analysis).
-- [ ] Optional: deploy a read-only demo (pre-indexed repos, rate-limited, hosted model with a spending cap). Otherwise ship a video plus one-command local run.
+- [ ] Ship a demo video plus a one-command local run. (A live read-only demo needs a VPS and a hosted model with a spending cap, so it's out of scope under the local-only decision unless a budget appears.)
 
 **Exit:** every item in §9 is checked.
 
@@ -196,11 +198,11 @@ A Node extractor using the TypeScript Compiler API (run as a subprocess at index
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | SymbolSolver can't resolve calls into libraries or Lombok code | High | Medium | Add a JAR type solver from `mvn dependency:copy-dependencies` when available. Keep unresolved edges labelled. Report the resolution rate as a metric. |
-| Local LLM too slow on this laptop | High | High | Hosted, OpenAI-compatible chat for eval and demo. Ollama for offline dev only. Measured in M0. |
+| Local LLM too slow on this laptop | **Happened** (M0: ~4.3 min/answer) | High | Accepted under the local-only decision: overnight eval runs, response cache keyed by prompt hash, tight context budget (prompt processing dominates), demo from a warm cache. A hosted provider is a config switch if a budget appears. |
 | Benchmark labelling takes longer than planned | High | High | Seed it in M0, add 5–10 questions per milestone, and cap it at 50. |
 | Spring AI API churn | Medium | Medium | Spring AI is used only inside `ai.internal` adapters behind your own ports. |
 | Scope creep (UI polish, extra languages) | High | High | §6 cut lines; nothing outside §3 before M6 is done. |
-| Hosted model cost or quota surprises | Low | Medium | Spending cap, `llm_call` accounting, benchmark caching keyed by prompt hash. |
+| Hosted model cost or quota surprises | N/A while local-only | Medium | Only applies if a hosted provider is configured later: spending cap, `llm_call` accounting, benchmark caching keyed by prompt hash. |
 | Windows-specific issues (CRLF, paths, Docker file sharing) | Medium | Medium | `.gitattributes`, LF normalization, `Path`-based code with tests using `/` and `\`, repos inside WSL or a Docker volume. |
 | Pinned target repo stops building | Low | Medium | Pin the SHA and keep a vendored copy of the fixture subset in `backend/src/test/resources/fixtures`. |
 

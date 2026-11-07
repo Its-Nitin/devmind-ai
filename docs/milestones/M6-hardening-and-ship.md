@@ -23,7 +23,7 @@
 | 7 | Fresh-clone reproducibility test | `docs/setup` | 1 h | ☐ |
 | 8 | Documentation: README, evaluation.md, architecture refresh | `docs/readme-evaluation` | 2–3 h | ☐ |
 | 9 | Demo: script, recording, GIF | `docs/demo` | 1–2 h | ☐ |
-| 10 | Optional: read-only hosted demo | `chore/demo-deploy` | 2 h | ☐ |
+| 10 | Optional: read-only hosted demo (needs a budget; skipped under local-only) | `chore/demo-deploy` | 2 h | ☐ |
 | 11 | Final acceptance + close out | — | 30 min | ☐ |
 
 ---
@@ -188,13 +188,15 @@ Keep it raw, but add a short "Highlights" section at the top with 5 lessons lear
    5. Injection question → resisted (20 s).
    6. Impact analysis on a prepared change → VERIFIED vs INFERRED findings → recommended tests with "why" paths → graph (60 s).
    7. Evaluation page plus one honest limitation (30 s).
-2. **Prepare state:** pre-indexed revisions, the prepared change committed on a demo branch, the response cache warm (or the hosted model), browser zoom set, notifications off.
+2. **Prepare state:** pre-indexed revisions, the prepared change committed on a demo branch, the response cache warm for **every** question you'll ask (local chat takes ~4 min per uncached answer), browser zoom set, notifications off.
 3. **Record:** OBS Studio or the Windows Game Bar at 1080p, with a voice-over or captions. Export the short GIF for the README (≤ 10 MB).
 4. Upload the video (YouTube unlisted or similar) and link it in the README.
 
 **Done when:** the video is recorded and linked.
 
 ## Step 10 — Optional: read-only hosted demo (2 h)
+
+> **Not planned under the local-only decision ([ADR-0006](../adr/0006-ai-provider-port.md)).** This step needs a paid VPS and a hosted chat model. Keep it only for the case where a budget becomes available.
 
 Only if you want a live link. Otherwise the video plus a one-command local run is enough ([PLAN.md M6](../PLAN.md#m6--hardening--ship-1216-h)).
 

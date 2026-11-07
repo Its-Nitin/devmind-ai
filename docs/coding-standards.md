@@ -219,6 +219,8 @@ Cite rules by ID in commits and reviews (e.g. "fix: SEC-4 canonicalize path befo
 | GIT-5 | Never commit secrets, `.env`, local datasets of private code, model weights or `target/`/`node_modules/`. | MUST | ci (gitleaks), .gitignore |
 | GIT-6 | Tag milestones `m0`…`m6`. The tag message summarizes exit criteria met and links the eval report. | MUST | review |
 
+> **Solo mode (active since 2026-11-07, until a collaborator joins):** commits go straight to `main`, with no feature branches, PRs or branch-protection ruleset. **GIT-1's branches, GIT-3 and GIT-4 are suspended.** Their intent still applies at commit level: keep `main` building, and keep each commit to one logical change. GIT-2 commit prefixes are encouraged, not enforced. GIT-5 and GIT-6 apply as written. Wherever a playbook says "PR", read "commit".
+
 <a id="doc"></a>
 ## DOC — Documentation
 
@@ -233,7 +235,7 @@ Cite rules by ID in commits and reviews (e.g. "fix: SEC-4 canonicalize path befo
 ---
 
 <a id="dod"></a>
-## Definition of Done (per PR)
+## Definition of Done (per PR; per commit in solo mode)
 
 - [ ] Scope belongs to the current milestone (GEN-3).
 - [ ] `./mvnw verify` and the frontend `lint`/`test`/`build` pass locally and in CI.
@@ -275,3 +277,4 @@ These came up while drafting and were removed or changed on purpose. They're kep
 <a id="changelog"></a>
 ## Changelog
 - **v1.0 — 2026-11-06:** initial standards. Drafted, reviewed against the plan/ADRs, and revised (see the rejected-rules table): unenforceable rules removed, every MUST given a check, and AI/SEC rules aligned with ADR-0006/0008/0010.
+- **v1.1 — 2026-11-07:** solo mode added under GIT. GIT-1 branches, GIT-3 and GIT-4 are suspended until a collaborator joins, commitlint (GIT-2) is not enforced, and the DoD applies per commit. Reason: single developer; the PR ceremony added noise without a reviewer.

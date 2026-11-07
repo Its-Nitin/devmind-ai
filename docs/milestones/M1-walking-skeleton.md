@@ -12,7 +12,7 @@
 
 ## Progress tracker
 
-| # | Step | PR | Time | Done |
+| # | Step | Commit group (was: PR branch) | Time | Done |
 |---|---|---|---|---|
 | 1 | Scaffold the backend | `chore/backend-scaffold` | 45 min | ☐ |
 | 2 | Module skeleton and package conventions | `chore/backend-scaffold` | 30 min | ☐ |
@@ -388,7 +388,7 @@ npm i primeng @primeuix/themes primeicons
        depends_on: [ backend ]
    volumes: { dbdata: {} }
    ```
-5. **`deploy/.env.example`:** list `DB_PASSWORD`, `DEVMIND_SEED_PASSWORD` and `DEVMIND_LLM_API_KEY` (used from M4) with placeholder values. Copy it to `deploy/.env`, which git ignores.
+5. **`deploy/.env.example`:** list `DB_PASSWORD` and `DEVMIND_SEED_PASSWORD` with placeholder values, plus `DEVMIND_LLM_API_KEY` commented out (optional; only needed if a hosted chat provider is configured, since v1 is local-only per ADR-0006). Copy it to `deploy/.env`, which git ignores.
 6. For a seeded user in compose, use a `demo` profile (`SPRING_PROFILES_ACTIVE: prod,demo`) that enables the seeding runner. Generalize the step 6 runner from `local` to `local | demo`.
 7. Verify with `docker compose --env-file deploy/.env -f deploy/compose.yaml up --build`, then open `http://localhost:8088`.
 
@@ -430,23 +430,21 @@ jobs:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - uses: gitleaks/gitleaks-action@v2                                  # SEC-6, GIT-5
-  commits:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
-      - uses: wagoid/commitlint-github-action@v6                           # GIT-2
+  # commits:   # solo mode: add with commitlint when a collaborator joins (GIT-2)
+  #   if: github.event_name == 'pull_request'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with: { fetch-depth: 0 }
+  #     - uses: wagoid/commitlint-github-action@v6
 ```
 Pin action versions to the current majors when you write it.
 
 Also:
 - `.github/dependabot.yml` for `maven` (/backend), `npm` (/frontend), `github-actions` (/), weekly (SEC-10).
-- `.github/pull_request_template.md` containing the PR Definition of Done from [coding-standards](../coding-standards.md#dod).
-- `commitlint.config.cjs` extending `@commitlint/config-conventional`, with `scope-enum` set to the module names plus `fe, ci, deps, docs, eval`.
-- Update the branch protection ruleset: require the `backend`, `frontend`, `secrets` and `commits` checks.
+- **Solo mode (skip for now):** the `commits` job above, `.github/pull_request_template.md`, `commitlint.config.cjs` and the branch-protection ruleset with required checks. Add them when a collaborator joins (see the solo-mode note under coding-standards GIT).
 
-**Done when:** a PR shows all four checks, and a PR with a bad commit message fails `commits`.
+**Done when:** a push to `main` shows the `backend`, `frontend` and `secrets` checks green in the Actions tab.
 
 ## Step 13 — Close out M1 (15 min)
 

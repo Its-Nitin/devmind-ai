@@ -4,7 +4,7 @@
 |---|---|
 | Milestone | M4 (see [PLAN.md §5](../PLAN.md#5-milestones)) |
 | Budget | 15–20 hours |
-| Prerequisite | `m3` tagged; hosted LLM key in env (M0 step 4) |
+| Prerequisite | `m3` tagged; Ollama running with `qwen2.5-coder:7b` (local-only, [ADR-0006](../adr/0006-ai-provider-port.md)). A hosted key is needed only if you switch providers. |
 | Goal | Answer repository questions with server-validated citations, explicit uncertainties and correct abstention. Measure answer quality, citation validity, abstention and injection resistance. |
 | Key decisions applied | [ADR-0006](../adr/0006-ai-provider-port.md) · [ADR-0008](../adr/0008-citation-by-evidence-id.md) · [architecture §6, §8](../architecture.md#6-pipeline-b--grounded-qa) |
 | Not in M4 | Streaming, multi-turn query rewriting, tools in Q&A (AI-7) |
@@ -84,7 +84,7 @@ Internals:
 
 Tests: request-shape tests against `MockRestServiceServer` for both adapters; timeout and retry behaviour; audit row written with the correct outcome; no content in the audit row.
 
-**Done when:** a manual `local` call through the hosted adapter returns a parsed object and an `llm_call` row.
+**Done when:** a manual `local` call through each adapter returns a parsed object and an `llm_call` row. Test `OpenAiCompatibleChatAdapter` against Ollama's OpenAI-compatible endpoint (`http://localhost:11434/v1`), so no hosted account is needed.
 
 ## Step 2 — Prompt registry + `qa-answer.v1` (1–2 h)
 
@@ -300,7 +300,7 @@ Tests: the gate's boolean logic; no `ChatModelPort` invocation when gated (verif
 
 ## Step 9 — Benchmark run + Experiment C (2 h)
 
-1. **Baseline:** run `--eval.mode=qa --eval.config-name=hybrid-qa --eval.split=dev` with the **hosted** model at temperature 0, plus one run on holdout.
+1. **Baseline:** run `--eval.mode=qa --eval.config-name=hybrid-qa --eval.split=dev` with the **local chat model** (`qwen2.5-coder:7b`, ADR-0006) at temperature 0, plus one run on holdout. At ~4 min per answer, run it overnight; the response cache makes reruns of unchanged prompts free.
 2. **Manual review:** fill in the review file for all dev questions (≈ 30). Budget about 60–90 minutes. It's tedious, and it's the most credible number you'll have.
 3. **Experiment C** (validator on vs off):
    - from the same cached raw outputs, compute what a UI *without* validation would have shown: invalid IDs rendered, plus claims with no valid support;

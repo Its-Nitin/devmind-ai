@@ -16,7 +16,7 @@ Step-by-step execution guides for each milestone in [PLAN.md](../PLAN.md). The p
 
 ## How to use a playbook
 1. Read the whole playbook once before starting the milestone.
-2. Work the steps in order. Each step lists the **PR** it belongs to, so every PR is small and reviewable (GIT-4).
+2. Work the steps in order. Each step lists the **PR** it belongs to, so every PR is small and reviewable (GIT-4). *In solo mode ([coding-standards GIT](../coding-standards.md#git)), treat each "PR" as one commit on `main`. Ignore branch names, `gh pr` commands and PR templates.*
 3. Tick the step's "Done when" before moving on.
 4. Code snippets are **skeletons that show shape and intent**, not finished code. They must still pass every rule in [coding-standards.md](../coding-standards.md).
 5. If reality contradicts the playbook (a library API changed, an assumption fails), stop. Write it in the devlog, and if it's architectural, write an ADR before changing course (DOC-1).

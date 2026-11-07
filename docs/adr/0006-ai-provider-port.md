@@ -21,7 +21,7 @@
 |---|---|---|
 | Local everything (Ollama) | $0, offline, private | Chat too slow on this hardware for benchmarks and a live demo |
 | Hosted everything | Fast, strong models | Per-token cost; embedding calls on every re-index |
-| **Local embeddings + configurable chat** (Ollama for dev, hosted OpenAI-compatible endpoint for eval/demo) | Embeddings are cheap on CPU and run once per blob ([ADR-0003](0003-content-addressed-storage.md)); chat quality and speed where it matters | Two providers to configure |
+| **Local embeddings + configurable chat** (Ollama for dev, hosted OpenAI-compatible endpoint for eval/demo). Chosen shape; in v1 the chat provider is also configured to local Ollama, see Decision. | Embeddings are cheap on CPU and run once per blob ([ADR-0003](0003-content-addressed-storage.md)); chat quality and speed where it matters | Two providers to configure |
 
 ## Decision
 - Ports live in `com.devmind.ai`: `EmbeddingPort.embed(List<String>) → List<float[]>`, `ChatModelPort.generate(StructuredRequest<T>) → StructuredResult<T>` (with usage, latency, model ID).
@@ -50,4 +50,4 @@ Ollama 0.40.15 · i7-1185G7 on AC power, "Best performance" mode · target: spri
 Decision rule (M0 playbook 5.6): the highest spot-check recall wins. mxbai wins by 4, so the speed and dimension tie-breakers don't apply. Neither model meets the ≤ ~20 min / 5k-chunk guideline; accepted, as stated in the Consequences. Local chat misses the ≤ ~30 s viability bar by about 8×; accepted under the local-only decision.
 
 ## Revisit when
-The machine changes (a GPU makes local chat viable), or eval shows the hosted model's answers aren't better than a local 7–8B on this benchmark. Then go fully local.
+A budget for a hosted chat provider becomes available (eval and demo speed), or the machine changes (a GPU makes local chat fast). Switching is a config change; record the before/after eval numbers when it happens.

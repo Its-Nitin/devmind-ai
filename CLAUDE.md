@@ -25,4 +25,10 @@ M1 (walking skeleton). M0 closed 2026-11-07 (tag `m0`). Update this line when a 
 _To be filled in M1 after scaffolding_ (build, test, run locally, run eval, regenerate OpenAPI types).
 
 ## When unsure
-Stop and ask, or write the question in the PR description. Don't guess on security, schema or public module APIs.
+Stop and ask, or write the question in `docs/devlog.md`.
+
+## Workflow (solo mode)
+- Commits go straight to `main`: no branches, PRs or rulesets until a collaborator joins (see the solo-mode note under coding-standards GIT).
+- AI assistants never run `git commit`/`push`/tag or rewrite history. Suggest the commands and a message; the owner commits.
+- No AI attribution trailers in commits.
+- Models are local-only (Ollama) in v1 ([ADR-0006](docs/adr/0006-ai-provider-port.md)). Don't add steps that need a hosted API key or spending cap. Don't guess on security, schema or public module APIs.
