@@ -6,15 +6,21 @@ targets:
     license: Apache-2.0
     javaFiles: 109
     testFiles: 22
-    testCount: TODO          # needs JDK: ./mvnw.cmd -q test (M0 step 3.3)
-    testRuntimeSeconds: TODO
-    jdkUsedForTests: TODO    # 21|25
+    testCount: 248           # 19 test classes, all passing at the pinned SHA
+    testRuntimeSeconds: 56   # `mvnw -q test`, warm Maven cache, AC power
+    jdkUsedForTests: 25      # Temurin 25.0.5; no JDK 21 fallback needed
     springBoot: 4.1.2
     lombok: false            # no `import lombok` in any .java file
     mapstruct: true          # 1.6.3; generated mappers land in target/ (excluded by file filter)
     openapiGenerator: true   # API interfaces + DTOs generated from src/main/resources/openapi.yml into target/;
                              # request mappings and the @PetAgeValidation usage live only in generated code
-    mutationFeasibility: TODO  # M0 step 3.4
+    mutationFeasibility: >-
+      Feasible. Trial: UserServiceImpl#saveUser line 20, `isEmpty()` -> `!isEmpty()`.
+      248 run, 1 failure + 4 errors, exactly the user-creation tests:
+      UserRestControllerV1Tests#testCreateUserSuccess and
+      UserService{H2Jdbc,HsqlJdbc,Jpa,SpringDataJpa}Tests#shouldAddUser.
+      Note: service tests run once per persistence profile, so one mutation in shared code
+      fails several test classes. Ground truth must list all of them.
     localPath: D:/dev/targets/spring-petclinic-rest
     localBranch: devmind-pinned
 

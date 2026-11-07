@@ -55,6 +55,14 @@
 
   - nomic misses: "add a visit for a pet" (returned entities instead of the controller), "pet-type delete cascade" (found the JPA/JDBC impls but not the active Spring Data one), "owners page by page", and "vet mapper" (tiny MapStruct interface).
 
+## 2026-11-07 — M0 (session 2, cont.)
+- Measured (step 3.3): petclinic-rest test suite at 5180cc9 on JDK 25: **248 tests, 19 classes, all pass, 56 s** (second run, warm cache). No JDK 21 fallback needed. At ~1 min per run, the 10–15 mutation runs in M5 take ~15 min total.
+- Measured (step 3.4), mutation trial: flipping `isEmpty()` → `!isEmpty()` in `UserServiceImpl#saveUser` gave 1 failure + 4 errors, all of them user-creation tests: the controller test plus `shouldAddUser` in each of the 4 persistence-profile variants (H2 JDBC, HSQL JDBC, JPA, Spring Data JPA). ADR-0011's mutation ground truth is feasible.
+  - Insight for M5: the service tests come from an abstract base class run once per persistence profile, so one change fans out to N test classes. Test-impact prediction must follow test inheritance (`extends AbstractUserServiceTests`), not just direct references, or recall will look bad for the wrong reason.
+- Broke / surprised:
+  - The first mutation attempt wasn't saved in the editor, so it ran 248/248 green against unchanged code. Lesson: check with `git diff` before trusting a "nothing failed" result.
+  - Switching branches in the target clone under the new global `autocrlf=false` left `ClinicServiceImpl.java` with a CRLF↔LF-only diff on `devmind-pinned`. Restored with `git checkout --`. Always check `git status` in the target before a mutation run.
+
 ### Later (ideas parked per GEN-3)
 - Index `openapi.yml` (and other spec files) so API-first projects' endpoints are discoverable.
 - Benchmark candidate: "Is repository call timing actually active?" (CallMonitoringAspect not registered).
