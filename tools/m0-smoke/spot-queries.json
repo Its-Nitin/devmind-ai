@@ -1,0 +1,12 @@
+[
+  { "q": "Where is the logic that adds a new visit for a pet?", "expect": "OwnerRestControllerV1.java" },
+  { "q": "Which code rejects a birth date that is in the future?", "expect": "PetAgeValidator.java" },
+  { "q": "How are validation errors turned into an HTTP error response?", "expect": "ExceptionControllerAdvice.java" },
+  { "q": "Where are user role names normalised before a user is saved?", "expect": "UserServiceImpl.java" },
+  { "q": "What removes pets and their visits when an animal category is deleted?", "expect": "SpringDataPetTypeRepositoryImpl.java" },
+  { "q": "Where is HTTP basic login against database users configured?", "expect": "BasicAuthenticationConfig.java" },
+  { "q": "Which component times calls made to the data access layer?", "expect": "CallMonitoringAspect.java" },
+  { "q": "Where is the endpoint that returns owners one page at a time?", "expect": "OwnerRestControllerV2.java" },
+  { "q": "Where does the code search owners whose surname starts with some text?", "expect": "OwnerRepository" },
+  { "q": "Which class converts between veterinarian entities and their API representation?", "expect": "VetMapper.java" }
+]

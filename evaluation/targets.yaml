@@ -1,0 +1,35 @@
+# Benchmark subject repositories, pinned in M0 (2026-11-07). Clones live outside this repo.
+targets:
+  - id: petclinic-rest
+    url: https://github.com/spring-petclinic/spring-petclinic-rest
+    sha: 5180cc9bd0163393c4e628bedc1bc4c27cfaab1b   # 2026-11-02 "Make Visit date required across OpenAPI, entity and SQL schemas (#383)"
+    license: Apache-2.0
+    javaFiles: 109
+    testFiles: 22
+    testCount: TODO          # needs JDK: ./mvnw.cmd -q test (M0 step 3.3)
+    testRuntimeSeconds: TODO
+    jdkUsedForTests: TODO    # 21|25
+    springBoot: 4.1.2
+    lombok: false            # no `import lombok` in any .java file
+    mapstruct: true          # 1.6.3; generated mappers land in target/ (excluded by file filter)
+    openapiGenerator: true   # API interfaces + DTOs generated from src/main/resources/openapi.yml into target/;
+                             # request mappings and the @PetAgeValidation usage live only in generated code
+    mutationFeasibility: TODO  # M0 step 3.4
+    localPath: D:/dev/targets/spring-petclinic-rest
+    localBranch: devmind-pinned
+
+  - id: petclinic-rest-injected
+    baseTarget: petclinic-rest
+    sha: 4fd1e365acac36bdaac602c42d6fb66feb726c71
+    patch: evaluation/fixtures/0001-test-fixture-prompt-injection-comment.patch
+    localBranch: devmind-injection
+    purpose: content-borne prompt-injection fixture (q019)
+
+  - id: petclinic-angular
+    url: https://github.com/spring-petclinic/spring-petclinic-angular
+    sha: fba8956cbdd04e09973f81eb39379955a825bfc3   # 2026-11-05
+    license: MIT             # declared in package.json; repo has no LICENSE file
+    localPath: D:/dev/targets/spring-petclinic-angular
+    localBranch: devmind-pinned
+
+  # Generalization repo: deferred (M0 step 3.6, cut line #4). Reason: not yet evaluated.

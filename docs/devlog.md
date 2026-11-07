@@ -28,6 +28,29 @@
   - Second pass over the 20 questions in a fresh session (step 6.6).
   - Generalization repo: deferred (cut line #4) unless time allows.
 
+## 2026-11-07 — M0 (session 2)
+- Did:
+  - Toolchain installed and verified: Temurin 25.0.5 LTS, Node 26.13.0 / npm 11.20.0, Docker 29.9.2 (Compose v5.6.1, WSL2 backend; `hello-world` OK), Ollama 0.40.15 (API OK), gh 2.103.3 (logged in as Its-Nitin), Git 2.56.0. VT-x enabled.
+  - First commit `8fd8842` (docs + repo config); `git ls-files --eol` shows i/lf w/lf for all 34 text files.
+- Decision: **local Ollama only, for chat as well as embeddings.** No hosted LLM account (no budget). M0 step 4 is skipped, and the hosted row in the step 5 table is N/A.
+  - This is within ADR-0006: the chat provider is config-only, and the "Revisit when" clause allows going fully local. ADR-0006 gets an amendment in the step-5 PR, alongside the embedding choice.
+  - Expected cost: slow CPU chat makes the 50-question × N-config eval long. Mitigations to evaluate in step 5: a smaller model (3B), a tighter context budget, overnight eval runs, and the planned response cache (reruns are free). Plan risk "Local LLM too slow" is now accepted rather than mitigated by hosted chat. The demo becomes a video plus a one-command local run (already the PLAN M6 fallback).
+  - T9 (denial of wallet) mostly falls away. Local CPU exhaustion remains a DoS concern.
+- Broke / surprised:
+  - No `.wslconfig` at first, so Docker saw 16.6 GB RAM. Fixed: `memory=8GB, processors=4`, and Docker now reports 8.3 GB.
+  - The first embedding timings were taken **on battery with the Balanced power plan**, about 8–25% slower. They were re-run plugged in with "Best performance", and only those numbers are used below.
+  - Embedding on this CPU is much slower than assumed. Neither model meets the playbook's ≤ ~20 min per 5,000 chunks. Accepted, because embeddings are computed once per blob (ADR-0003). PetClinic (276 naive chunks) takes ~7 min with mxbai.
+- Measured (step 5; Ollama 0.40.15, AC power, Best performance, 40-line naive chunks, batch 16):
+
+| Model | Role | Dims | ms/chunk or median s | Gen tok/s | Valid JSON | Spot Recall@5 | Ollama ID |
+|---|---|---|---|---|---|---|---|
+| nomic-embed-text | embed | 768 | 742.5 ms (61.9 min / 5k) | – | – | 6/10 | 0a109f422b47 |
+| mxbai-embed-large | embed | 1024 | 1558 ms (129.8 min / 5k) | – | – | 10/10 | 468836162de7 |
+| qwen2.5-coder:7b | chat (local) | – | _pending_ | | /3 | – | dae161e27b0e |
+| hosted | chat (hosted) | – | N/A (local-only decision) | – | – | – | – |
+
+  - nomic misses: "add a visit for a pet" (returned entities instead of the controller), "pet-type delete cascade" (found the JPA/JDBC impls but not the active Spring Data one), "owners page by page", and "vet mapper" (tiny MapStruct interface).
+
 ### Later (ideas parked per GEN-3)
 - Index `openapi.yml` (and other spec files) so API-first projects' endpoints are discoverable.
 - Benchmark candidate: "Is repository call timing actually active?" (CallMonitoringAspect not registered).
