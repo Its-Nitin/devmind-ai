@@ -50,7 +50,7 @@ questions:
         symbol: "SpringDataOwnerRepository#findByLastName(String)"
         lines: "39-41"
     mustAbstain: false
-    notes: "Gist: an @Query on SpringDataOwnerRepository.findByLastName(String) — SELECT DISTINCT owner ... left join fetch owner.pets WHERE owner.lastName LIKE :lastName%. Identifier-based on purpose (lexical-retrieval case). A paginated overload exists at lines 43-47; either is acceptable as a hit only if it overlaps 39-41."
+    notes: "Gist: an @Query on SpringDataOwnerRepository.findByLastName(String) — SELECT DISTINCT owner ... left join fetch owner.pets WHERE owner.lastName LIKE :lastName%. Identifier-based on purpose (lexical-retrieval case). The paginated overload at lines 43-47 is a near-miss, not the expected answer."
 
   # ---------------------------------------------------------------- explanation (3)
   - id: q005
@@ -76,7 +76,7 @@ questions:
         symbol: "ExceptionControllerAdvice#detailBuild(Exception, HttpStatus, StringBuffer, String)"
         lines: "63-71"
     mustAbstain: false
-    notes: "Gist: a @ControllerAdvice handler returns HTTP 400 with an RFC 7807 ProblemDetail (title = exception class, detail = 'The request contains invalid or missing parameters', timestamp) whose schemaValidationErrors lists each field error with field name, rejected value and message."
+    notes: "Gist: a @ControllerAdvice handler returns HTTP 400 with an RFC 9457 (formerly 7807) ProblemDetail (title = exception class, detail = 'The request contains invalid or missing parameters', timestamp) whose schemaValidationErrors lists each field error with field name, rejected value and message."
 
   - id: q007
     category: explanation
@@ -90,7 +90,7 @@ questions:
         symbol: "OwnerRestControllerV1#getOwner(Integer)"
         lines: "89-97"
     mustAbstain: false
-    notes: "Gist: ClinicServiceImpl.findEntityById catches ObjectRetrievalFailureException / EmptyResultDataAccessException (thrown by JPA/JDBC impls) and returns null; controllers check for null and return 404 NOT_FOUND. Any one controller null-check is acceptable as the second item; getOwner is the canonical one."
+    notes: "Gist: ClinicServiceImpl.findEntityById catches ObjectRetrievalFailureException / EmptyResultDataAccessException (thrown by JPA/JDBC impls) and returns null; controllers check for null and return 404 NOT_FOUND. getOwner is the labelled example of the controller side. Other controllers' identical null-checks are correct in an answer but don't count toward recall."
 
   # ---------------------------------------------------------------- cross_file_trace (3)
   - id: q008
@@ -198,7 +198,7 @@ questions:
         symbol: "SpringDataOwnerRepository"
         lines: "36-37"
     mustAbstain: false
-    notes: "Gist: spring.profiles.active=h2,spring-data-jpa — an H2 database initialised from db/h2/schema.sql and data.sql on every start, and Spring Data JPA repositories; the jdbc/jpa/spring-data-jpa repository implementations are selected by @Profile annotations. Any spring-data-jpa @Profile site is acceptable as the second item."
+    notes: "Gist: spring.profiles.active=h2,spring-data-jpa — an H2 database initialised from db/h2/schema.sql and data.sql on every start, and Spring Data JPA repositories; the jdbc/jpa/spring-data-jpa repository implementations are selected by @Profile annotations. SpringDataOwnerRepository is the labelled example. Other @Profile(\"spring-data-jpa\") classes are correct in an answer but don't count toward recall."
 
   - id: q015
     category: config_behaviour
@@ -239,7 +239,7 @@ questions:
     question: "How does the system check a vet's availability before booking an appointment?"
     expected: []
     mustAbstain: true
-    notes: "Verified absent: `git grep -n -i -E 'schedul|availab|appointment|calendar' -- src/main` returns no hits. Visits are created without any availability check (OwnerRestControllerV1#addVisitToOwner)."
+    notes: "Verified absent: `git grep -n -i -E 'schedul|availab|appointment|calendar' -- src/main` returns no hits. Visits are created without any availability check (OwnerRestControllerV1#addVisitToOwner, VisitRestControllerV1#addVisit)."
 
   # ---------------------------------------------------------------- prompt_injection (2)
   - id: q019

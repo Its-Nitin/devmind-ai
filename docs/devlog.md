@@ -63,6 +63,34 @@
   - The first mutation attempt wasn't saved in the editor, so it ran 248/248 green against unchanged code. Lesson: check with `git diff` before trusting a "nothing failed" result.
   - Switching branches in the target clone under the new global `autocrlf=false` left `ClinicServiceImpl.java` with a CRLF↔LF-only diff on `devmind-pinned`. Restored with `git checkout --`. Always check `git status` in the target before a mutation run.
 
+## 2026-11-07 — M0 benchmark second pass (step 6.6)
+- Done by Claude with fresh eyes, using a review sheet that inlined each expected snippet. The owner looked through it but deferred the judgement, so this is **not an independent human review**; say so if the benchmark is cited. All 31 line ranges start and end on method/annotation boundaries.
+- Fixed:
+  - q004, q007, q014: notes said "either/any one is acceptable", which an automatic Recall@k matcher can't apply. Now the labelled location is the single expected item, and equivalents are "correct in an answer but don't count toward recall".
+  - q006: "RFC 7807" → "RFC 9457 (formerly 7807)".
+  - q018: added the second visit-creation path, `VisitRestControllerV1#addVisit`.
+- Noted: smoke spot-query 1 ("adds a new visit for a pet") actually has two valid answers (`OwnerRestControllerV1#addVisitToOwner` and `VisitRestControllerV1#addVisit`). It doesn't change the M0 result: nomic's top 5 contained neither main class, and mxbai hit the expected one.
+
+## 2026-11-07 — M0 closed
+**Exit checklist** (PLAN M0 / playbook 8.1):
+- [x] Toolchain verified (versions above)
+- [x] Repo on GitHub (Its-Nitin/devmind-ai, public) with `.gitattributes`/`.editorconfig`/`.gitignore`; LF verified
+- [x] Targets pinned in `evaluation/targets.yaml`; primary suite passes (248/248, 56 s); mutation trial recorded
+- [~] Hosted LLM key + spending cap: **N/A**, local-only decision (ADR-0006)
+- [x] Model measurements recorded; embedding model + dimension locked in ADR-0006 (`mxbai-embed-large`, 1024-d)
+- [x] 20 labelled questions committed (quota met, 4 holdout, injection fixture committed)
+- [x] `docs/threat-model.md` v0 committed
+- [x] No product code written
+
+**Summary:** the whole stack runs locally at $0. Retrieval quality looks promising (mxbai 10/10 on naive chunks). Speed is the constraint: ~1.6 s per embedded chunk and ~4.3 min per chat answer on this CPU.
+
+**Deviations from the playbook:**
+- Solo workflow: commits go straight to `main`, with no PRs or branch ruleset until a collaborator joins (overrides GIT-3/GIT-4 for now).
+- The benchmark second pass was not done independently by a human (see above).
+- Generalization repo deferred (cut line #4).
+
+**Next (M1, walking skeleton):** monorepo with a Spring Boot backend and an Angular shell; `deploy/compose.yaml` (pgvector, backend, frontend, Caddy); Flyway V1 baseline; health, ProblemDetail, correlation-ID and JSON logs; quality gates; GitHub Actions CI; login with a seeded user plus `POST/GET /api/projects` with ownership enforced. Lessons to carry forward: watch the space in the repo path for Docker bind mounts, and plan context-budget work early, since prompt processing dominates local chat time.
+
 ### Later (ideas parked per GEN-3)
 - Index `openapi.yml` (and other spec files) so API-first projects' endpoints are discoverable.
 - Benchmark candidate: "Is repository call timing actually active?" (CallMonitoringAspect not registered).

@@ -13,14 +13,14 @@
 
 | # | Step | Time box | Done |
 |---|---|---|---|
-| 1 | Install and verify the toolchain | 60–90 min | ☐ |
-| 2 | Bootstrap the Git repository | 30 min | ☐ |
-| 3 | Pin and verify target repositories | 60–90 min | ☐ |
-| 4 | Set up a hosted LLM account with a spending cap | 15 min | ☐ |
-| 5 | Model smoke tests and the embedding-model decision | 60–90 min | ☐ |
-| 6 | Seed the benchmark (20 questions) | 2–3 h | ☐ |
-| 7 | Threat model v0 | 60–90 min | ☐ |
-| 8 | Close out M0 (checklist, commit, tag) | 15 min | ☐ |
+| 1 | Install and verify the toolchain | 60–90 min | ☑ |
+| 2 | Bootstrap the Git repository | 30 min | ☑ |
+| 3 | Pin and verify target repositories | 60–90 min | ☑ (generalization repo deferred) |
+| 4 | Set up a hosted LLM account with a spending cap | 15 min | — skipped: local-only decision (ADR-0006) |
+| 5 | Model smoke tests and the embedding-model decision | 60–90 min | ☑ |
+| 6 | Seed the benchmark (20 questions) | 2–3 h | ☑ |
+| 7 | Threat model v0 | 60–90 min | ☑ |
+| 8 | Close out M0 (checklist, commit, tag) | 15 min | ☑ |
 
 The order matters. Step 3 provides the code that step 5 benchmarks, and step 4 provides the key the hosted test in step 5 needs.
 
