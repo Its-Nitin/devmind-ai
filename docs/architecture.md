@@ -166,7 +166,7 @@ erDiagram
 | `code_symbol` | id, file_blob_id, parent_symbol_id, kind `CLASS\|INTERFACE\|ENUM\|RECORD\|ANNOTATION\|METHOD\|CONSTRUCTOR\|FIELD`, name, qualified_name, signature, **symbol_key** (qualified_name + erased param types), modifiers text[], annotations text[], is_test, start_line, end_line | idx(file_blob_id); idx(symbol_key); gin trgm(name), gin trgm(qualified_name) |
 | `code_chunk` | id, file_blob_id, symbol_id null, start_line, end_line, content, header, **search_tsv** tsvector, token_estimate, redaction_count | gin(search_tsv); idx(file_blob_id) |
 | `embedding_model` | id, provider, model_name, dimensions, model_digest, created_at | unique(provider, model_name, model_digest) |
-| `chunk_embedding` | chunk_id, embedding_model_id, embedding `vector(768)`* | pk(chunk_id, embedding_model_id); HNSW (vector_cosine_ops) |
+| `chunk_embedding` | chunk_id, embedding_model_id, embedding `vector(1024)`* | pk(chunk_id, embedding_model_id); HNSW (vector_cosine_ops) |
 | `symbol_edge` | id, revision_id, source_symbol_id, target_symbol_id null, target_ref text, relation `CALLS\|IMPORTS\|EXTENDS\|IMPLEMENTS\|OVERRIDES\|REFERENCES\|HTTP_CALLS`, provenance `STATIC_RESOLVED\|STATIC_NAME_MATCH\|HEURISTIC\|LLM_INFERRED`, line | idx(revision_id, source_symbol_id); idx(revision_id, target_symbol_id) |
 | `conversation` / `chat_message` | message: id, conversation_id, role, content, revision_id, answer jsonb (validated evidence, uncertainties), llm_call_id, created_at | idx(conversation_id, created_at) |
 | `analysis_run` | id, public_id, project_id, base_revision_id, head_revision_id, status, config jsonb, summary jsonb, created_at | |
@@ -176,7 +176,7 @@ erDiagram
 | `llm_call` | id, project_id, purpose, provider, model, prompt_id, prompt_version, input_tokens, output_tokens, latency_ms, outcome `OK\|INVALID_OUTPUT\|REPAIRED\|TIMEOUT\|ERROR`, correlation_id, created_at | idx(created_at) |
 | `evaluation_run` | id, dataset, dataset_hash, config jsonb, metrics jsonb, report_path, created_at | (UI's "latest results"; files in `evaluation/reports` are the source of truth) |
 
-\* The dimension is fixed by the M0 decision. Changing the model means a new `embedding_model` row and a re-embed job, plus a new migration if the dimension changes ([ADR-0003](adr/0003-content-addressed-storage.md), [ADR-0006](adr/0006-ai-provider-port.md)).
+\* The dimension is fixed by the M0 decision: `mxbai-embed-large`, 1024-d ([ADR-0006](adr/0006-ai-provider-port.md)). Changing the model means a new `embedding_model` row and a re-embed job, plus a new migration if the dimension changes ([ADR-0003](adr/0003-content-addressed-storage.md), [ADR-0006](adr/0006-ai-provider-port.md)).
 
 ### 4.2 Data rules
 - **Everything is revision-scoped at read time.** Queries join `revision_file` for the requested `revision_id`, so stale citations are impossible by construction.

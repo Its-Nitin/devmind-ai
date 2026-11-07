@@ -46,8 +46,12 @@
 |---|---|---|---|---|---|---|---|
 | nomic-embed-text | embed | 768 | 742.5 ms (61.9 min / 5k) | – | – | 6/10 | 0a109f422b47 |
 | mxbai-embed-large | embed | 1024 | 1558 ms (129.8 min / 5k) | – | – | 10/10 | 468836162de7 |
-| qwen2.5-coder:7b | chat (local) | – | _pending_ | | /3 | – | dae161e27b0e |
+| qwen2.5-coder:7b | chat (local) | – | median 255.4 s (runs 255.4 / 252.3 / 270.1; warm-up 251.5) | 2.9–3.4 | 3/3 | – | dae161e27b0e |
 | hosted | chat (hosted) | – | N/A (local-only decision) | – | – | – | – |
+
+**Decision:** embedding = `mxbai-embed-large` (dims 1024, digest 468836162de7…). Chat for eval/demo = local `qwen2.5-coder:7b`. Reason: 10/10 vs 6/10 spot recall is decisive; local chat is the owner's $0 choice despite missing the 30 s bar about 8×. Recorded in ADR-0006; `architecture.md` §4.1 and the M3 migration snippet are updated to `vector(1024)`.
+  - Chat bench input: 4,063 prompt tokens (num_ctx 8192, no truncation), about 115 output tokens. **Prompt processing dominates the time**: at ~3 tok/s, generation is only ~35–40 s of the ~255 s. So cutting the context budget is the biggest lever, more than a smaller output.
+  - Answer quality: the script sends the first 11 files alphabetically (config, mappers, model), which contain **no** controllers. The model correctly answered `insufficientEvidence: true`, a good abstention. But it listed all 11 evidence IDs while saying none was relevant (over-citation). The M4 citation validator should treat "abstain + cite everything" as zero valid citations.
 
   - nomic misses: "add a visit for a pet" (returned entities instead of the controller), "pet-type delete cascade" (found the JPA/JDBC impls but not the active Spring Data one), "owners page by page", and "vet mapper" (tiny MapStruct interface).
 

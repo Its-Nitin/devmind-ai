@@ -54,7 +54,7 @@ Tests:
 
 ## Step 2 — Embedding schema + indexing phase (2–3 h)
 
-`V3__embeddings.sql` (replace `768` with the M0 dimension):
+`V3__embeddings.sql` (dimension 1024 = `mxbai-embed-large`, locked in M0, see ADR-0006):
 ```sql
 CREATE TABLE embedding_model (
   id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -69,7 +69,7 @@ CREATE TABLE embedding_model (
 CREATE TABLE chunk_embedding (
   chunk_id           bigint NOT NULL REFERENCES code_chunk(id) ON DELETE CASCADE,
   embedding_model_id bigint NOT NULL REFERENCES embedding_model(id) ON DELETE CASCADE,
-  embedding          vector(768) NOT NULL,
+  embedding          vector(1024) NOT NULL,
   PRIMARY KEY (chunk_id, embedding_model_id)
 );
 CREATE INDEX chunk_embedding_model_idx ON chunk_embedding (embedding_model_id);
