@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+  "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!--
+  Small, deliberate rule set: formatting belongs to Spotless (JAVA-1), null-safety to NullAway (JAVA-2).
+  Only rules neither tool covers live here. Rule IDs refer to docs/coding-standards.md.
+-->
+<module name="Checker">
+  <property name="charset" value="UTF-8"/>
+  <property name="severity" value="error"/>
+  <property name="fileExtensions" value="java"/>
+
+  <!-- GEN-7 (SHOULD): long files are a smell, reported as a warning only. -->
+  <module name="FileLength">
+    <property name="max" value="300"/>
+    <property name="severity" value="warning"/>
+  </module>
+
+  <module name="TreeWalker">
+    <!-- JAVA-14: log through SLF4J; no console output or printStackTrace. -->
+    <module name="RegexpSinglelineJava">
+      <property name="id" value="noSystemOut"/>
+      <property name="format" value="\bSystem\s*\.\s*(out|err)\b"/>
+      <property name="ignoreComments" value="true"/>
+      <property name="message" value="JAVA-14: use SLF4J, not System.out/System.err."/>
+    </module>
+    <module name="RegexpSinglelineJava">
+      <property name="id" value="noPrintStackTrace"/>
+      <property name="format" value="\.printStackTrace\s*\("/>
+      <property name="ignoreComments" value="true"/>
+      <property name="message" value="JAVA-14: log the exception through SLF4J instead of printStackTrace()."/>
+    </module>
+
+    <!-- Explicit imports keep module dependencies readable in review. -->
+    <module name="AvoidStarImport"/>
+
+    <!-- GEN-4: names say what, not how. -->
+    <module name="TypeName">
+      <property name="format" value="^(?!.*(Util|Utils|Helper|Helpers|Manager|Misc)$)[A-Z][a-zA-Z0-9]*$"/>
+      <message key="name.invalidPattern"
+        value="GEN-4: type name ''{0}'' must not end in Util/Helper/Manager/Misc; name what it does."/>
+    </module>
+
+    <!-- GEN-5: every TODO references an issue, e.g. TODO(#12): ... -->
+    <module name="TodoComment">
+      <property name="format" value="(TODO|FIXME)(?!\(#\d+\):)"/>
+      <message key="todo.match" value="GEN-5: TODO/FIXME must reference an issue: TODO(#12): ..."/>
+    </module>
+
+    <!-- GEN-7 (SHOULD): long methods are a smell, reported as a warning only. -->
+    <module name="MethodLength">
+      <property name="max" value="40"/>
+      <property name="countEmpty" value="false"/>
+      <property name="severity" value="warning"/>
+    </module>
+  </module>
+</module>

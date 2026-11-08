@@ -94,3 +94,22 @@
 ### Later (ideas parked per GEN-3)
 - Index `openapi.yml` (and other spec files) so API-first projects' endpoints are discoverable.
 - Benchmark candidate: "Is repository call timing actually active?" (CallMonitoringAspect not registered).
+
+## 2026-11-08 — M1 (session 1): steps 1–3
+- Did:
+  - Step 1: backend generated from start.spring.io: Spring Boot 4.1.2 (current GA), Java 25, Maven wrapper 3.10.0 (script-only, no wrapper jar). Main class `DevMindApplication`. Added springdoc 3.2.0, pgvector 0.1.6, JSpecify 1.0.1, ArchUnit 1.5.1, Awaitility.
+  - Step 2: modules `shared` (OPEN), `identity`, `project`, `job`; every package has an `@NullMarked` `package-info.java`.
+  - Step 3: quality gates bound to `verify`: Enforcer (no Lombok/H2, Java ≥ 25, dependency convergence), Error Prone 2.52.0 + NullAway 0.14.3 (`OnlyNullMarked`, NullAway at ERROR) with `-Xlint:all,-processing` and `failOnWarning`, Spotless 3.11.0 + palantir-java-format 2.103.0 (+ sortPom), Checkstyle 14.4.0 (no `System.out`/`printStackTrace`, no star imports, GEN-4 type-name ban, GEN-5 TODO format, GEN-7 length warnings), JaCoCo 0.8.16 (80% line floor on indexing/retrieval/qa/impact internals). `ModularityTest` + `ArchitectureTest` (13 rules: ARCH-3/5/8, API-1, ADR-0005, JAVA-6/9/11, SEC-4, SPRING-1/2).
+- Decision: **formatter = palantir-java-format** (ADR-0013 updated).
+- Deviation: Initializr's Modulith JPA event registry, observability, actuator and runtime artifacts were dropped. The JPA registry needs an `event_publication` table, which `ddl-auto=validate` rejects; add it back with a Flyway migration in the milestone that first publishes events (ARCH-6).
+- Verified (deliberate violations, then removed): NullAway (null return), Error Prone `ReferenceEquality` (fails via `failOnWarning`), ArchUnit (field `@Autowired`, `Instant.now()`), Checkstyle (`*Helper`, bare TODO, `System.out`), Enforcer (Lombok), Spotless (unformatted file).
+- Measured: `./mvnw clean verify` 34 s warm (16 tests; context test on `pgvector/pgvector:pg17` ~14 s).
+- Broke / surprised:
+  - This terminal's PATH lacks `java`; Maven runs via `JAVA_HOME`. The user's shell is fine.
+  - Spotless's sortPom option is `nrOfIndentSpace`, not `nrIndentSpace`.
+  - ArchUnit `owner(...)` needs `JavaClass.Predicates` (`assignableTo`/`equivalentTo`), not `HasType.rawType`.
+  - `archRule.failOnEmptyShould=false` is set, because many rules target layers that don't exist yet.
+- Next: step 12 (CI), then step 4 (Testcontainers base + V1 migration).
+
+### Later (ideas parked per GEN-3)
+- Load Mockito as a `-javaagent` in Surefire to silence the JDK dynamic-agent warning (needs `dependency:properties` + `@{argLine}` alongside JaCoCo).
