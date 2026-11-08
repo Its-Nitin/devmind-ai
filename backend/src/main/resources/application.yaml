@@ -1,0 +1,8 @@
+# Baseline for every profile. Step 5 (M1) adds the web, logging and actuator settings.
+spring:
+  application:
+    name: devmind
+  jpa:
+    open-in-view: false # SPRING-3
+    hibernate:
+      ddl-auto: validate # SPRING-3: Flyway owns the schema (DB-1)

@@ -114,3 +114,12 @@
 
 ### Later (ideas parked per GEN-3)
 - Load Mockito as a `-javaagent` in Surefire to silence the JDK dynamic-agent warning (needs `dependency:properties` + `@{argLine}` alongside JaCoCo).
+
+## 2026-11-08 — M1 (session 1, cont.): step 4
+- Did: `support/TestcontainersConfiguration` (pinned image, reuse when enabled locally), `@IntegrationTest` (SpringBootTest + Testcontainers + `test` profile), `V1__baseline.sql` (`app_user`, `project`, `job`; extensions vector, pg_trgm, citext), `SchemaTest` (DB-2: every FK has a supporting index, via `pg_catalog`), `PersistenceSettingsTest` (SPRING-3). Minimal `application.yaml` (open-in-view off, ddl-auto validate); step 5 extends it. The Initializr sample test is removed.
+- Decisions / deviations from the step text:
+  - Image pinned to **`pgvector/pgvector:0.8.7-pg17`** instead of the floating `pg17` tag (TEST-4). Step 11's compose file must use the same tag.
+  - **Added `job_project_idx`.** In the plan's DDL, `job.project_id` was covered only by the *partial* `job_idempotency_uk` index, which excludes FAILED rows and so can't serve cascade deletes. The schema test treats partial indexes as non-supporting. Verified: dropping the index fails the test with `job.job_project_id_fkey`.
+  - Extra DB-3 constraints: `email` ≤ 254 chars, `attempts >= 0`, `max_attempts >= 1`.
+- Measured: `./mvnw verify` 36 s, 19 tests. Testcontainers reuse isn't enabled on this machine yet, so each run starts a fresh container (~13–18 s).
+- Next: step 5 (errors, correlation ID, logging, clock, profiles).

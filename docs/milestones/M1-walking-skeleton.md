@@ -17,7 +17,7 @@
 | 1 | Scaffold the backend | `chore/backend-scaffold` | 45 min | ☑ |
 | 2 | Module skeleton and package conventions | `chore/backend-scaffold` | 30 min | ☑ |
 | 3 | Quality gates (format, lint, null-safety, arch, coverage) | `chore/quality-gates` | 90 min | ☑ |
-| 4 | Testcontainers base and first migration | `feat/db-baseline` | 45 min | ☐ |
+| 4 | Testcontainers base and first migration | `feat/db-baseline` | 45 min | ☑ |
 | 5 | Cross-cutting web concerns (errors, correlation ID, logging, clock) | `feat/web-foundation` | 60 min | ☐ |
 | 6 | Identity: session login, CSRF, seeded user | `feat/identity-session-auth` | 90 min | ☐ |
 | 7 | Project module and `ProjectAccessPolicy` | `feat/project-crud` | 90 min | ☐ |
@@ -25,7 +25,7 @@
 | 9 | Scaffold the frontend | `chore/frontend-scaffold` | 60 min | ☐ |
 | 10 | Frontend: login and projects | `feat/fe-login-projects` | 90 min | ☐ |
 | 11 | Docker Compose stack | `chore/compose-stack` | 60 min | ☐ |
-| 12 | CI pipeline | `ci/github-actions` | 45 min | ☐ |
+| 12 | CI pipeline | `ci/github-actions` | 45 min | ☑ |
 | 13 | Close out M1 | — | 15 min | ☐ |
 
 Steps 3 and 12 can be merged before step 4, so every later PR runs through the gates. That's the recommended order: 1 → 2 → 3 → 12 → 4 → … .
