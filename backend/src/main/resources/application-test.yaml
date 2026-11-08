@@ -1,0 +1,5 @@
+# Integration tests. The datasource comes from Testcontainers (@ServiceConnection). Plain-text logs for readable
+# test output.
+logging:
+  level:
+    com.devmind: DEBUG

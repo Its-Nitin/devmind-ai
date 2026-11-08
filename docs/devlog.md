@@ -113,7 +113,7 @@
 - Step 12 (same session): `.github/workflows/ci.yml` with `backend` (`./mvnw -B -ntp verify`) and `secrets` (pinned `ghcr.io/gitleaks/gitleaks:v8.30.1` image, full history) jobs; `.github/dependabot.yml` for maven + github-actions. Actions pinned to current majors (checkout v7, setup-java v6). gitleaks-action v3 was dropped after its binary download (old 8.24.3 from the renamed `zricethezav` repo) returned 504 on two runs. The frontend job and npm Dependabot entry come with step 9. Local pre-checks: gitleaks 8.30.1 over all 7 commits found no leaks; actionlint clean.
 
 ### Later (ideas parked per GEN-3)
-- Load Mockito as a `-javaagent` in Surefire to silence the JDK dynamic-agent warning (needs `dependency:properties` + `@{argLine}` alongside JaCoCo).
+- ~~Load Mockito as a `-javaagent` in Surefire~~ Done 2026-11-08 (modernization pass, below).
 
 ## 2026-11-08 — M1 (session 1, cont.): step 4
 - Did: `support/TestcontainersConfiguration` (pinned image, reuse when enabled locally), `@IntegrationTest` (SpringBootTest + Testcontainers + `test` profile), `V1__baseline.sql` (`app_user`, `project`, `job`; extensions vector, pg_trgm, citext), `SchemaTest` (DB-2: every FK has a supporting index, via `pg_catalog`), `PersistenceSettingsTest` (SPRING-3). Minimal `application.yaml` (open-in-view off, ddl-auto validate); step 5 extends it. The Initializr sample test is removed.
@@ -123,3 +123,20 @@
   - Extra DB-3 constraints: `email` ≤ 254 chars, `attempts >= 0`, `max_attempts >= 1`.
 - Measured: `./mvnw verify` 36 s, 19 tests. Testcontainers reuse isn't enabled on this machine yet, so each run starts a fresh container (~13–18 s).
 - Next: step 5 (errors, correlation ID, logging, clock, profiles).
+
+## 2026-11-08 — M1 (session 1, cont.): step 5
+- Did: `Clock` bean (`shared.internal`); `CorrelationIdFilter` (highest precedence, validated `X-Correlation-Id` or a generated UUID, MDC + response header, MDC cleared in `finally`); `ProblemDetailsAdvice` extending `ResponseEntityExceptionHandler`, so Spring MVC's own errors get the same shape. Every problem has `type = https://devmind.dev/problems/<code>`, `code` and `correlationId`; validation adds `errors[]`; unexpected errors are logged at ERROR and answered with a generic 500. Shared public API: `DomainException` → `NotFoundException` (404), `ConflictException` (409). `application.yaml` baseline plus `local` / `test` / `prod` profiles (ECS JSON logs in local/prod, actuator on 8081 in prod, no secrets). `@ConfigurationPropertiesScan` on the app.
+- Tests (30 total, 44 s): correlation filter unit tests (echo, generate, reject a log-forging value, MDC cleared on failure); ProblemDetail mappings (unknown endpoint 404, not-found, conflict, validation 400, 500 without internals); actuator exposes only health/info/metrics.
+- Decisions:
+  - Web infrastructure lives in `shared.internal(.web)`; the `shared` top level stays value types plus the exception bases. Exceptions are classes, not records; ARCH-3's list doesn't name them, so noted here.
+  - The catch-all handler rethrows `AccessDeniedException`/`AuthenticationException`, so Spring Security still answers 401/403 (matters from step 6).
+  - Test-only controllers are nested in the test class: `TestTypeExcludeFilter` keeps them out of component scanning, so they won't show up in the step 7 authorization matrix.
+- Deferred: the "invalid config fails startup" binding test comes with the first `@ConfigurationProperties` record (step 6 seed config). M1 has no tunables yet, and adding one just for the test would be dead code (GEN-5).
+
+## 2026-11-08 — M1 (session 1, cont.): modernization pass before step 6
+- Web tests moved from classic MockMvc + Hamcrest `jsonPath` to **`MockMvcTester`** (AssertJ, Spring 6.2+/7), matching TEST-7. ProblemDetail bodies are checked with `bodyJson().isLenientlyEqualTo(...)`. Actuator checks are now `@ParameterizedTest`s.
+- **NullAway JSpecify mode** on (`-XepOpt:NullAway:JSpecifyMode=true`), the mode Spring 7 is checked with; it also covers nullness inside generics. The existing code compiled clean.
+- **Mockito loaded as `-javaagent`** (`dependency:properties` + `@{argLine}` after JaCoCo) instead of self-attaching, which the JDK is phasing out (JEP 451). `-Xshare:off` on the test JVM only silences the CDS notice the agent causes.
+- Result: 37 tests, `./mvnw verify` 32 s, no JVM/Mockito warnings left.
+- **Modernizer Maven Plugin 3.5.0** added as a `verify` gate (JAVA-15, MUST; standards v1.2): legacy APIs the Java 25 target has replaced fail the build, in main and test bytecode. Probe: `Collections.emptyList()` → "Prefer java.util.List.of()", build failed. `Vector` and charset-name probes were already caught earlier by Error Prone (`JdkObsolete`, `StringCharset`); the two gates overlap.
+- Still unverified: springdoc 3.2.0 on Boot 4.1 (step 8).

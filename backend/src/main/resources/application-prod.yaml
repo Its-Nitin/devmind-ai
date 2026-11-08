@@ -1,0 +1,10 @@
+# Deployed (compose). Everything environment-specific comes from env vars: SPRING_DATASOURCE_URL,
+# SPRING_DATASOURCE_USERNAME, SPRING_DATASOURCE_PASSWORD (SPRING-4, SEC-6).
+management:
+  server:
+    port: 8081 # SPRING-5: actuator on the internal port only
+
+logging:
+  structured:
+    format:
+      console: ecs # OBS-1

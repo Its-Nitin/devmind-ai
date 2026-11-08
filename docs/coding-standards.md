@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | v1.0 (2026-11-06). Change via PR that updates this file **and** the changelog at the bottom. |
+| Status | v1.2 (2026-11-08). Change via PR that updates this file **and** the changelog at the bottom. |
 | Applies to | All code, SQL, prompts, config and docs in this repository, whether written by a human or an AI assistant |
 
 **Keywords.** **MUST** / **MUST NOT** = blocking; a PR that violates one doesn't merge. **SHOULD** = default; deviation needs a one-line justification in the PR or a code comment. **MAY** = allowed option.
@@ -31,6 +31,7 @@ Cite rules by ID in commits and reviews (e.g. "fix: SEC-4 canonicalize path befo
 | GEN-6 | Magic numbers that are tunable (top-k, depth, timeouts, thresholds) live in typed `@ConfigurationProperties`, never inline. | MUST | review |
 | GEN-7 | Keep files focused: a class over ~300 lines or a method over ~40 lines is a smell to split, not a hard limit. | SHOULD | lint (warning) |
 | GEN-8 | Text files are UTF-8 with LF line endings; `.editorconfig` and `.gitattributes` are authoritative. | MUST | fmt, ci |
+| GEN-9 | Use the current idiom of the versions we're on (e.g. `MockMvcTester` over classic MockMvc + Hamcrest, Spring Security's SPA CSRF support over hand-wired handlers, Angular signals and zoneless over zone.js). Check the API of the version in use rather than reaching for a familiar older one. Choosing an older idiom on purpose needs a one-line reason in the commit or a code comment. New dependencies start on their latest stable release. | SHOULD | review; the detectable part is JAVA-15 (Modernizer) |
 
 <a id="arch"></a>
 ## ARCH — Architecture & module boundaries
@@ -66,6 +67,7 @@ Cite rules by ID in commits and reviews (e.g. "fix: SEC-4 canonicalize path befo
 | JAVA-12 | Public methods of public API types have Javadoc stating contract, nullability and thrown exceptions. Internal code is commented only for *why*, not *what*. | SHOULD | review |
 | JAVA-13 | No preview features. | MUST | ci (compiler flags) |
 | JAVA-14 | Log through SLF4J with placeholders; no `System.out`/`printStackTrace`. | MUST | lint |
+| JAVA-15 | No legacy JDK or library APIs that the target Java version has replaced (e.g. `Collections.emptyList()` → `List.of()`, `Date`/`Calendar` → `java.time`, charset names → `StandardCharsets`, Guava/Commons helpers the JDK now covers). Checked against `java.version` on main and test bytecode. Suppress a finding only with `@SuppressModernizer` plus a one-line reason. | MUST | lint (Modernizer Maven Plugin; Error Prone `JdkObsolete` overlaps) |
 
 <a id="spring"></a>
 ## SPRING — Spring Boot specifics
@@ -278,3 +280,4 @@ These came up while drafting and were removed or changed on purpose. They're kep
 ## Changelog
 - **v1.0 — 2026-11-06:** initial standards. Drafted, reviewed against the plan/ADRs, and revised (see the rejected-rules table): unenforceable rules removed, every MUST given a check, and AI/SEC rules aligned with ADR-0006/0008/0010.
 - **v1.1 — 2026-11-07:** solo mode added under GIT. GIT-1 branches, GIT-3 and GIT-4 are suspended until a collaborator joins, commitlint (GIT-2) is not enforced, and the DoD applies per commit. Reason: single developer; the PR ceremony added noise without a reviewer.
+- **v1.2 — 2026-11-08:** GEN-9 added (current idioms of the pinned versions; older choices need a reason) and JAVA-15 (no legacy APIs, enforced by the Modernizer Maven Plugin on `verify`). Reason: the M1 modernization pass found three older patterns (classic MockMvc, NullAway without JSpecify mode, Mockito self-attach) that the current versions had already replaced.

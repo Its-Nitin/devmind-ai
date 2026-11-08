@@ -18,7 +18,7 @@
 | 2 | Module skeleton and package conventions | `chore/backend-scaffold` | 30 min | ☑ |
 | 3 | Quality gates (format, lint, null-safety, arch, coverage) | `chore/quality-gates` | 90 min | ☑ |
 | 4 | Testcontainers base and first migration | `feat/db-baseline` | 45 min | ☑ |
-| 5 | Cross-cutting web concerns (errors, correlation ID, logging, clock) | `feat/web-foundation` | 60 min | ☐ |
+| 5 | Cross-cutting web concerns (errors, correlation ID, logging, clock) | `feat/web-foundation` | 60 min | ☑ |
 | 6 | Identity: session login, CSRF, seeded user | `feat/identity-session-auth` | 90 min | ☐ |
 | 7 | Project module and `ProjectAccessPolicy` | `feat/project-crud` | 90 min | ☐ |
 | 8 | OpenAPI spec as a committed contract | `feat/openapi-contract` | 30 min | ☐ |

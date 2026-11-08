@@ -1,0 +1,13 @@
+# Local development against the compose database (127.0.0.1:5432). Set DB_PASSWORD in your shell.
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/devmind
+    username: devmind
+    password: ${DB_PASSWORD}
+
+logging:
+  structured:
+    format:
+      console: ecs # OBS-1
+  level:
+    com.devmind: DEBUG

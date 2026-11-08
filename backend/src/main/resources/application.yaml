@@ -1,4 +1,5 @@
-# Baseline for every profile. Step 5 (M1) adds the web, logging and actuator settings.
+# Baseline for every profile. Profiles: local, test, eval, prod (SPRING-4). No secrets in any file:
+# credentials come from environment variables only (SEC-6).
 spring:
   application:
     name: devmind
@@ -6,3 +7,26 @@ spring:
     open-in-view: false # SPRING-3
     hibernate:
       ddl-auto: validate # SPRING-3: Flyway owns the schema (DB-1)
+  threads:
+    virtual:
+      enabled: true # JAVA-11
+  servlet:
+    multipart:
+      enabled: false # no uploads in v1
+
+server:
+  error:
+    include-stacktrace: never # API-3
+    include-message: never
+  tomcat:
+    max-swallow-size: 1MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics # SPRING-5
+
+logging:
+  pattern:
+    correlation: "[%X{correlationId:-}] " # OBS-1, plain-text logs
