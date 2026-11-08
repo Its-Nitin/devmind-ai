@@ -110,6 +110,7 @@
   - ArchUnit `owner(...)` needs `JavaClass.Predicates` (`assignableTo`/`equivalentTo`), not `HasType.rawType`.
   - `archRule.failOnEmptyShould=false` is set, because many rules target layers that don't exist yet.
 - Next: step 12 (CI), then step 4 (Testcontainers base + V1 migration).
+- Step 12 (same session): `.github/workflows/ci.yml` with `backend` (`./mvnw -B -ntp verify`) and `secrets` (gitleaks-action v3, full history) jobs; `.github/dependabot.yml` for maven + github-actions. Actions pinned to current majors (checkout v7, setup-java v6, gitleaks-action v3). The frontend job and npm Dependabot entry come with step 9. Local pre-checks: gitleaks 8.30.1 over all 7 commits found no leaks; actionlint clean.
 
 ### Later (ideas parked per GEN-3)
 - Load Mockito as a `-javaagent` in Surefire to silence the JDK dynamic-agent warning (needs `dependency:properties` + `@{argLine}` alongside JaCoCo).

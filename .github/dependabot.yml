@@ -1,0 +1,13 @@
+# Dependency updates (SEC-10). The npm entry (/frontend) is added with the Angular scaffold (M1 step 9).
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

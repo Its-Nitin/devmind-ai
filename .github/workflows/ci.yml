@@ -1,0 +1,47 @@
+# Every quality gate enforcing from day one (M1 step 12, ADR-0013).
+# Jobs: backend (./mvnw verify runs all gates), secrets (gitleaks over full history).
+# The frontend job is added with the Angular scaffold (M1 step 9). The commitlint job is
+# skipped in solo mode (coding-standards GIT, solo-mode note).
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      # Enforcer, Error Prone + NullAway, tests (Testcontainers pgvector, Modulith, ArchUnit),
+      # Spotless, Checkstyle, JaCoCo.
+      - run: ./mvnw -B -ntp verify
+
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # SEC-6, GIT-5. No GITLEAKS_LICENSE needed: personal-account repository.
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
