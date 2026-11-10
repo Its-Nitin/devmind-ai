@@ -1,9 +1,23 @@
-# Local development against the compose database (127.0.0.1:5432). Set DB_PASSWORD in your shell.
+# Local development against the compose database (127.0.0.1:5432). Set DB_PASSWORD and DEVMIND_SEED_PASSWORD (the
+# demo user's password, 12-72 characters) in your shell. Startup fails without them.
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/devmind
     username: devmind
     password: ${DB_PASSWORD}
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false # plain http on localhost
+
+devmind:
+  identity:
+    seed:
+      email: demo@devmind.local
+      display-name: Demo User
+      password: ${DEVMIND_SEED_PASSWORD:} # empty when unset, so validation fails with a clear message
 
 logging:
   structured:

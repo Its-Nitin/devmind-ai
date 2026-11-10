@@ -16,7 +16,9 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -37,6 +39,10 @@ class ProblemDetailsAdvice extends ResponseEntityExceptionHandler {
     static final String TYPE_BASE = "https://devmind.dev/problems/";
     static final String VALIDATION_FAILED = "validation-failed";
     static final String INTERNAL_ERROR = "internal-error";
+    static final String INVALID_CREDENTIALS = "invalid-credentials";
+    static final String UNAUTHENTICATED = "unauthenticated";
+    static final String INVALID_CSRF_TOKEN = "invalid-csrf-token";
+    static final String ACCESS_DENIED = "access-denied";
 
     private static final Logger log = LoggerFactory.getLogger(ProblemDetailsAdvice.class);
 
@@ -53,18 +59,47 @@ class ProblemDetailsAdvice extends ResponseEntityExceptionHandler {
         return domainProblem(HttpStatus.CONFLICT, ex, request);
     }
 
+    /*
+     * Security failures. They come from controllers (a failed login) and from the security filter chain, whose entry
+     * point and access-denied handler delegate here, so every 401/403 has the same shape. Details are fixed strings:
+     * exception messages never reach the client. Method security isn't used; if it ever is, an anonymous
+     * AccessDeniedException must become 401, not 403.
+     */
+
+    /** Same code and detail for an unknown email and a wrong password: no account enumeration. */
+    @ExceptionHandler(BadCredentialsException.class)
+    ResponseEntity<Object> handleBadCredentials(BadCredentialsException ex, WebRequest request) {
+        return problem(HttpStatus.UNAUTHORIZED, INVALID_CREDENTIALS, "Email or password is incorrect.", request);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    ResponseEntity<Object> handleUnauthenticated(AuthenticationException ex, WebRequest request) {
+        return problem(HttpStatus.UNAUTHORIZED, UNAUTHENTICATED, "Sign in to access this resource.", request);
+    }
+
+    @ExceptionHandler(CsrfException.class)
+    ResponseEntity<Object> handleCsrf(CsrfException ex, WebRequest request) {
+        return problem(
+                HttpStatus.FORBIDDEN,
+                INVALID_CSRF_TOKEN,
+                "The CSRF token is missing or invalid. Get a new one from GET /api/auth/csrf and retry.",
+                request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<Object> handleAccessDenied(AccessDeniedException ex, WebRequest request) {
+        return problem(HttpStatus.FORBIDDEN, ACCESS_DENIED, "You don't have access to this resource.", request);
+    }
+
     /** JAVA-8 boundary: log once with the stack trace, answer with a generic 500. */
     @ExceptionHandler(Exception.class)
-    ResponseEntity<Object> handleUnexpected(Exception ex, WebRequest request) throws Exception {
-        if (ex instanceof AccessDeniedException || ex instanceof AuthenticationException) {
-            throw ex; // Spring Security's ExceptionTranslationFilter answers these (401/403).
-        }
+    ResponseEntity<Object> handleUnexpected(Exception ex, WebRequest request) {
         log.error("Unhandled exception", ex);
-        ProblemDetail body = ProblemDetail.forStatusAndDetail(
+        return problem(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "An unexpected error occurred. Quote the correlation ID when reporting it.");
-        body.setProperty("code", INTERNAL_ERROR);
-        return createResponseEntity(body, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, request);
+                INTERNAL_ERROR,
+                "An unexpected error occurred. Quote the correlation ID when reporting it.",
+                request);
     }
 
     @Override
@@ -100,8 +135,12 @@ class ProblemDetailsAdvice extends ResponseEntityExceptionHandler {
     }
 
     private ResponseEntity<Object> domainProblem(HttpStatus status, DomainException ex, WebRequest request) {
-        ProblemDetail body = ProblemDetail.forStatusAndDetail(status, ex.getMessage());
-        body.setProperty("code", ex.code());
+        return problem(status, ex.code(), messageOf(ex.getMessage()), request);
+    }
+
+    private ResponseEntity<Object> problem(HttpStatus status, String code, String detail, WebRequest request) {
+        ProblemDetail body = ProblemDetail.forStatusAndDetail(status, detail);
+        body.setProperty("code", code);
         return createResponseEntity(body, new HttpHeaders(), status, request);
     }
 

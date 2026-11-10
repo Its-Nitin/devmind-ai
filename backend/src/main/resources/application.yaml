@@ -20,6 +20,13 @@ server:
     include-message: never
   tomcat:
     max-swallow-size: 1MB
+  servlet:
+    session:
+      tracking-modes: cookie # never ;jsessionid in URLs
+      cookie: # SEC-7; local turns off secure for plain-http localhost
+        http-only: true
+        secure: true
+        same-site: lax
 
 management:
   endpoints:
@@ -29,4 +36,4 @@ management:
 
 logging:
   pattern:
-    correlation: "[%X{correlationId:-}] " # OBS-1, plain-text logs
+    correlation: "[%X{correlationId:-}] [%X{userId:-}] " # OBS-1, plain-text logs

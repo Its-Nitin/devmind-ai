@@ -140,3 +140,21 @@
 - Result: 37 tests, `./mvnw verify` 32 s, no JVM/Mockito warnings left.
 - **Modernizer Maven Plugin 3.5.0** added as a `verify` gate (JAVA-15, MUST; standards v1.2): legacy APIs the Java 25 target has replaced fail the build, in main and test bytecode. Probe: `Collections.emptyList()` → "Prefer java.util.List.of()", build failed. `Vector` and charset-name probes were already caught earlier by Error Prone (`JdkObsolete`, `StringCharset`); the two gates overlap.
 - Still unverified: springdoc 3.2.0 on Boot 4.1 (step 8).
+
+## 2026-11-10 — M1 (session 2): step 6
+- Did: identity public API `UserId` (record) and `CurrentUser` (interface, backed by the security context; throws an AuthenticationException → 401 when nobody is signed in). `AppUser` entity + repository (email lookups `CAST(:email AS citext)`: a varchar parameter would make Postgres compare as text, case-sensitively). `UserRegistrationService` (delegating encoder → `{bcrypt}`), `AppUserDetailsService`, `AuthenticatedUser` principal (serializable plain values, hash erased after login). `SecurityConfiguration`: `csrf.spa()` with our own `CookieCsrfTokenRepository` (SameSite=Lax), session fixation `changeSessionId`, form login/basic/request cache off, entry point and access-denied handler delegate to the MVC exception resolver so 401/403 are the usual ProblemDetails. `AuthController`: `POST /api/auth/login`, `GET /api/auth/me`, `GET /api/auth/csrf` (204, issues the cookie). `UserIdMdcFilter` adds `userId` to the MDC (OBS-1). `local` seed user via validated `DemoUserProperties` (`DEVMIND_SEED_PASSWORD`, 12–72 chars, fail fast). Session cookie `HttpOnly; Secure; SameSite=Lax`, cookie-only tracking; `local` turns off `Secure` for plain-http localhost.
+- New problem codes: `invalid-credentials` (401, same for unknown email and wrong password), `unauthenticated` (401), `invalid-csrf-token` (403), `access-denied` (403).
+- Decisions / deviations from the step text:
+  - **Logout is Spring Security's `logout()` filter** on `POST /api/auth/logout` (204, invalidates the session, clears the context and the CSRF token), not a controller method (GEN-9). So it won't appear in the step 7 handler matrix or the step 8 OpenAPI spec; the frontend calls it directly.
+  - **`ProblemDetailsAdvice` now handles `AuthenticationException`/`AccessDeniedException`** instead of rethrowing them (step 5 behaviour). No method security is used; if it ever is, an anonymous AccessDenied must become 401.
+  - **Non-health actuator endpoints need a login** rather than `denyAll`: SPRING-5's exposure test needs to tell 200 from 404, and in `prod` actuator is only on internal port 8081 anyway.
+  - The controller login applies the session strategy itself (new session ID + CSRF token rotation) and reads the rotated token, so the login response already carries a new XSRF-TOKEN cookie.
+  - `CurrentUser` is a singleton reading the thread-bound security context, not a request-scoped proxy.
+  - The registration existence check isn't race-proof; the unique index is the backstop (no public sign-up in v1).
+  - The config-binding test deferred from step 5 is `DemoUserPropertiesTest` (`ApplicationContextRunner`).
+- Broke / surprised:
+  - MockMvc's `csrf()` post-processor permanently swaps the CsrfFilter's repository for a session-backed test one in the shared context, so cookie assertions under MockMvc see no XSRF-TOKEN. And a `MockHttpSession` has no requested session ID, so the fixation strategy doesn't rotate it. Both are tested in `SessionCookieTest` instead: `RANDOM_PORT` + JDK `HttpClient` over loopback, the same flow as curl (csrf → login with cookie + header → me), plus cookie flags, token rotation and session ID rotation.
+  - Bash heredocs containing apostrophes fail in this agent shell; use the editor tools for Java sources.
+- Measured: 55 tests, `./mvnw verify` green.
+- Not verified by hand: curl against a running `local` app. That needs the compose database (step 11); `SessionCookieTest` automates the same flow.
+- Next: step 7 (project module, `ProjectAccessPolicy`, authorization matrix). It needs a way to resolve `UserId` → `app_user.id` for `project.owner_id`, which is a public identity API decision.
