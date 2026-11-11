@@ -158,7 +158,7 @@ erDiagram
 | Table | Columns (abridged) | Constraints / indexes |
 |---|---|---|
 | `app_user` | id, public_id, email `citext`, display_name, password_hash, created_at | unique(email) |
-| `project` | id, public_id, owner_id, name, source_type `LOCAL\|GIT_PUBLIC`, source_location, default_branch, created_at | unique(owner_id, name); idx(owner_id) |
+| `project` | id, public_id, owner_id (uuid → `app_user.public_id`, V2), name, source_type `LOCAL\|GIT_PUBLIC`, source_location, default_branch, created_at | unique(owner_id, name); idx(owner_id) |
 | `job` | id, public_id, project_id, type `INDEX\|ANALYSIS\|EVAL`, idempotency_key, status `QUEUED\|RUNNING\|SUCCEEDED\|FAILED\|CANCELLED`, attempts, max_attempts, run_after, locked_by, locked_until, progress jsonb, error_code, error_detail, created_at, updated_at | unique(project_id, type, idempotency_key) where status <> 'FAILED'; idx(status, run_after) |
 | `repository_revision` | id, project_id, commit_sha char(40), index_config_hash, status `INDEXING\|READY\|FAILED`, stats jsonb (files, symbols, chunks, edges, resolution_rate, redactions, parse_failures), created_at, ready_at | unique(project_id, commit_sha, index_config_hash) |
 | `file_blob` | id, project_id, content_hash char(64), language, size_bytes, line_count, content text, parse_status `OK\|PARSE_FAILED\|SKIPPED`, parser_version | unique(project_id, content_hash, parser_version) |

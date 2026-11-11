@@ -4,28 +4,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.devmind.identity.internal.application.UserRegistrationService;
 import com.devmind.support.TestcontainersConfiguration;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import org.jspecify.annotations.Nullable;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.client.EntityExchangeResult;
+import org.springframework.test.web.servlet.client.RestTestClient;
 
 /**
- * The real servlet container over loopback HTTP, doing what a browser or curl does: fetch the XSRF-TOKEN cookie, echo
- * it as a header, log in, reuse the session cookie. It also checks what MockMvc can't show: cookie flags, token
- * rotation and session ID rotation (SEC-7).
+ * The real servlet container, doing what a browser or curl does: fetch the XSRF-TOKEN cookie, echo it as a header,
+ * log in, reuse the session cookie. It also checks what MockMvc can't show: cookie flags, token rotation and session
+ * ID rotation (SEC-7).
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureRestTestClient
 @Import(TestcontainersConfiguration.class)
 @ActiveProfiles("test")
 class SessionCookieTest {
@@ -34,103 +34,117 @@ class SessionCookieTest {
     private static final String XSRF_COOKIE = "XSRF-TOKEN";
     private static final String SESSION_COOKIE = "JSESSIONID";
 
-    private final HttpClient http = HttpClient.newHttpClient();
-    private final UserRegistrationService registration;
-    private final int port;
-
-    private String email = "";
+    private final RestTestClient client;
+    private final String email = "user-" + UUID.randomUUID() + "@test.local";
 
     @Autowired
-    SessionCookieTest(UserRegistrationService registration, @LocalServerPort int port) {
-        this.registration = registration;
-        this.port = port;
-    }
-
-    @BeforeEach
-    void registerUser() {
-        email = "user-" + UUID.randomUUID() + "@test.local";
-        registration.register(email, "Cookie User", PASSWORD);
+    SessionCookieTest(RestTestClient client, UserRegistrationService registration) {
+        this.client = client;
+        registration.register(email, "Cookie User", PASSWORD); // a fresh instance, and user, per test
     }
 
     @Test
-    void csrfThenLoginIssuesHardenedSessionCookieThatAuthenticatesMe() throws IOException, InterruptedException {
+    void csrfThenLoginIssuesHardenedSessionCookieThatAuthenticatesMe() {
         // Given
-        HttpResponse<String> csrf =
-                send(HttpRequest.newBuilder(uri("/api/auth/csrf")).GET());
-        String xsrfCookie = setCookie(csrf, XSRF_COOKIE);
-        assertThat(xsrfCookie).doesNotContainIgnoringCase("HttpOnly").containsIgnoringCase("SameSite=Lax");
+        String xsrfToken = fetchCsrfToken();
 
         // When
-        HttpResponse<String> login = logIn(cookieValue(xsrfCookie), null);
+        EntityExchangeResult<String> login = logIn(xsrfToken, null)
+                .expectStatus()
+                .isOk()
+                .expectCookie()
+                .httpOnly(SESSION_COOKIE, true)
+                .expectCookie()
+                .secure(SESSION_COOKIE, true)
+                .expectCookie()
+                .sameSite(SESSION_COOKIE, "Lax")
+                .expectBody(String.class)
+                .returnResult();
 
         // Then
-        assertThat(login.statusCode()).isEqualTo(200);
-        String sessionCookie = setCookie(login, SESSION_COOKIE);
-        assertThat(sessionCookie)
-                .containsIgnoringCase("HttpOnly")
-                .containsIgnoringCase("Secure")
-                .containsIgnoringCase("SameSite=Lax");
-        assertThat(cookieValue(setCookie(login, XSRF_COOKIE)))
+        assertThat(cookie(login, XSRF_COOKIE))
                 .as("login rotates the CSRF token")
-                .isNotBlank()
-                .isNotEqualTo(cookieValue(xsrfCookie));
-
-        HttpResponse<String> me = send(HttpRequest.newBuilder(uri("/api/auth/me"))
-                .header("Cookie", SESSION_COOKIE + "=" + cookieValue(sessionCookie))
-                .GET());
-        assertThat(me.statusCode()).isEqualTo(200);
-        assertThat(me.body()).contains(email);
+                .isNotEqualTo(xsrfToken);
+        client.get()
+                .uri("/api/auth/me")
+                .cookie(SESSION_COOKIE, cookie(login, SESSION_COOKIE))
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody()
+                .jsonPath("$.email")
+                .isEqualTo(email);
     }
 
     @Test
-    void loggingInWithAnExistingSessionChangesItsId() throws IOException, InterruptedException {
+    void csrfCookieIsReadableByTheSpaAndSameSite() {
+        client.get()
+                .uri("/api/auth/csrf")
+                .exchange()
+                .expectStatus()
+                .isNoContent()
+                .expectCookie()
+                .httpOnly(XSRF_COOKIE, false)
+                .expectCookie()
+                .sameSite(XSRF_COOKIE, "Lax");
+    }
+
+    @Test
+    void loggingInWithAnExistingSessionChangesItsId() {
         // Given: a live session, standing in for one an attacker planted before the victim logs in
-        String firstToken = cookieValue(
-                setCookie(send(HttpRequest.newBuilder(uri("/api/auth/csrf")).GET()), XSRF_COOKIE));
-        HttpResponse<String> first = logIn(firstToken, null);
-        String sessionId = cookieValue(setCookie(first, SESSION_COOKIE));
-        String rotatedToken = cookieValue(setCookie(first, XSRF_COOKIE));
+        EntityExchangeResult<String> first = logIn(fetchCsrfToken(), null)
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult();
+        String sessionId = cookie(first, SESSION_COOKIE);
 
         // When
-        HttpResponse<String> second = logIn(rotatedToken, sessionId);
+        EntityExchangeResult<String> second = logIn(cookie(first, XSRF_COOKIE), sessionId)
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult();
 
         // Then
-        assertThat(second.statusCode()).isEqualTo(200);
-        assertThat(cookieValue(setCookie(second, SESSION_COOKIE))).isNotEqualTo(sessionId);
+        assertThat(cookie(second, SESSION_COOKIE)).isNotEqualTo(sessionId);
     }
 
-    private HttpResponse<String> logIn(String xsrfToken, @Nullable String sessionId)
-            throws IOException, InterruptedException {
-        String cookies =
-                XSRF_COOKIE + "=" + xsrfToken + (sessionId == null ? "" : "; " + SESSION_COOKIE + "=" + sessionId);
-        return send(HttpRequest.newBuilder(uri("/api/auth/login"))
-                .header("Content-Type", "application/json")
-                .header("Cookie", cookies)
+    private String fetchCsrfToken() {
+        EntityExchangeResult<Void> csrf = client.get()
+                .uri("/api/auth/csrf")
+                .exchange()
+                .expectStatus()
+                .isNoContent()
+                .expectBody()
+                .isEmpty();
+        return cookie(csrf, XSRF_COOKIE);
+    }
+
+    private RestTestClient.ResponseSpec logIn(String xsrfToken, @Nullable String sessionId) {
+        return client.post()
+                .uri("/api/auth/login")
+                .cookies(cookies -> {
+                    cookies.add(XSRF_COOKIE, xsrfToken);
+                    if (sessionId != null) {
+                        cookies.add(SESSION_COOKIE, sessionId);
+                    }
+                })
                 .header("X-XSRF-TOKEN", xsrfToken)
-                .POST(HttpRequest.BodyPublishers.ofString("""
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""
                         {"email": "%s", "password": "%s"}
-                        """.formatted(email, PASSWORD))));
+                        """.formatted(email, PASSWORD))
+                .exchange();
     }
 
-    private HttpResponse<String> send(HttpRequest.Builder request) throws IOException, InterruptedException {
-        return http.send(request.build(), HttpResponse.BodyHandlers.ofString());
-    }
-
-    private URI uri(String path) {
-        return URI.create("http://localhost:" + port + path);
-    }
-
-    /** The last {@code Set-Cookie} for {@code name}, as a browser would keep it. */
-    private static String setCookie(HttpResponse<?> response, String name) {
-        List<String> cookies = response.headers().allValues("Set-Cookie");
-        return cookies.stream()
-                .filter(cookie -> cookie.startsWith(name + "="))
-                .reduce((first, second) -> second)
-                .orElseThrow(() -> new AssertionError("No " + name + " cookie in " + cookies));
-    }
-
-    private static String cookieValue(String setCookie) {
-        int end = setCookie.indexOf(';');
-        return setCookie.substring(setCookie.indexOf('=') + 1, end < 0 ? setCookie.length() : end);
+    /**
+     * The value of the last {@code Set-Cookie} for {@code name}, as a browser keeps it: on login the token is first
+     * cleared, then reissued.
+     */
+    private static String cookie(EntityExchangeResult<?> result, String name) {
+        List<ResponseCookie> cookies = Objects.requireNonNull(
+                result.getResponseCookies().get(name), () -> "no " + name + " cookie in the response");
+        return cookies.getLast().getValue();
     }
 }
