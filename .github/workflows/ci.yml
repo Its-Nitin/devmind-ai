@@ -1,7 +1,7 @@
 # Every quality gate enforcing from day one (M1 step 12, ADR-0013).
-# Jobs: backend (./mvnw verify runs all gates), secrets (gitleaks over full history).
-# The frontend job is added with the Angular scaffold (M1 step 9). The commitlint job is
-# skipped in solo mode (coding-standards GIT, solo-mode note).
+# Jobs: backend (./mvnw verify runs all gates), frontend (types, format, lint, tests, build),
+# secrets (gitleaks over full history). The commitlint job is skipped in solo mode
+# (coding-standards GIT, solo-mode note).
 name: ci
 
 on:
@@ -33,6 +33,28 @@ jobs:
       # Enforcer, Error Prone + NullAway, tests (Testcontainers pgvector, Modulith, ArchUnit),
       # Spotless, Checkstyle, JaCoCo.
       - run: ./mvnw -B -ntp verify
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      # API-10, FE-7: the committed TS types must match the committed backend contract.
+      - name: API types match backend/openapi.json
+        run: npm run api:types && git diff --exit-code -- src/app/core/api
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm test -- --watch=false
+      - run: npm run build
 
   secrets:
     runs-on: ubuntu-latest

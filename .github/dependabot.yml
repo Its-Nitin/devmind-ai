@@ -1,4 +1,4 @@
-# Dependency updates (SEC-10). The npm entry (/frontend) is added with the Angular scaffold (M1 step 9).
+# Dependency updates (SEC-10).
 version: 2
 updates:
   - package-ecosystem: maven
@@ -6,6 +6,18 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Angular packages must move together, or the build breaks on mismatched versions.
+      angular:
+        patterns: ['@angular/*', '@angular-devkit/*', 'angular-eslint', '@angular-eslint/*']
+      primeng:
+        patterns: ['primeng', '@primeuix/*', 'primeicons']
 
   - package-ecosystem: github-actions
     directory: /

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | v1.2 (2026-11-08). Change via PR that updates this file **and** the changelog at the bottom. |
+| Status | v1.3 (2026-11-14). Change via PR that updates this file **and** the changelog at the bottom. |
 | Applies to | All code, SQL, prompts, config and docs in this repository, whether written by a human or an AI assistant |
 
 **Keywords.** **MUST** / **MUST NOT** = blocking; a PR that violates one doesn't merge. **SHOULD** = default; deviation needs a one-line justification in the PR or a code comment. **MAY** = allowed option.
@@ -195,7 +195,7 @@ Cite rules by ID in commits and reviews (e.g. "fix: SEC-4 canonicalize path befo
 | ID | Rule | Level | Check |
 |---|---|---|---|
 | FE-1 | TypeScript `strict: true`, plus `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes` and Angular `strictTemplates`. No `any` (use `unknown` + narrowing). No non-null `!` assertions without a comment. | MUST | lint, ci |
-| FE-2 | Standalone components only, `ChangeDetectionStrategy.OnPush` on all components, zoneless app config. | MUST | lint |
+| FE-2 | Standalone components only, OnPush change detection, zoneless app. All three are Angular 22 defaults, so don't restate them; never opt out (`ChangeDetectionStrategy.Eager`/`Default`, `provideZoneChangeDetection`, `standalone: false`). | MUST | lint |
 | FE-3 | State in signals (`signal`, `computed`, `linkedSignal`/resources where helpful). RxJS only for HTTP/event streams, converted at the service boundary. No manual `subscribe` in components without `takeUntilDestroyed`. | MUST | lint, review |
 | FE-4 | Use `inject()` for DI. Use new control flow (`@if`, `@for` with `track`, `@switch`). Use `input()`/`output()`/`model()` signal APIs. | MUST | lint |
 | FE-5 | Structure: `core/` (singletons: auth, http interceptors, error handling), `shared/` (presentational, dependency-free UI), `features/<feature>/` (routes, pages, feature store, data-access). Features don't import from other features. | MUST | lint (eslint boundaries rule) |
@@ -207,7 +207,7 @@ Cite rules by ID in commits and reviews (e.g. "fix: SEC-4 canonicalize path befo
 | FE-11 | Accessibility: semantic elements, labelled controls, keyboard-navigable citation chips and tree, colour not the only signal (VERIFIED/INFERRED badges have text). | MUST | lint (angular-eslint template a11y), review |
 | FE-12 | Repository and model content are rendered as text (SEC-9). Code goes only through CodeMirror. | MUST | lint |
 | FE-13 | Unit tests for stores, pipes and non-trivial components; one Playwright E2E for the happy path (login → index → ask → open citation). | MUST | ci |
-| FE-14 | Prettier formatting; file naming `kebab-case.<type>.ts`. Selector prefix `dm-`. | MUST | fmt, lint |
+| FE-14 | Prettier formatting. File names follow the current Angular style guide: kebab-case after the class, with no `.component`/`.service` type suffix (`login-page.ts` + `login-page.html`, `auth-store.ts`, `projects-api.ts`, tests `<name>.spec.ts`). Selector prefix `dm-`. | MUST | fmt, lint |
 
 <a id="git"></a>
 ## GIT — Version control & workflow
@@ -281,3 +281,4 @@ These came up while drafting and were removed or changed on purpose. They're kep
 - **v1.0 — 2026-11-06:** initial standards. Drafted, reviewed against the plan/ADRs, and revised (see the rejected-rules table): unenforceable rules removed, every MUST given a check, and AI/SEC rules aligned with ADR-0006/0008/0010.
 - **v1.1 — 2026-11-07:** solo mode added under GIT. GIT-1 branches, GIT-3 and GIT-4 are suspended until a collaborator joins, commitlint (GIT-2) is not enforced, and the DoD applies per commit. Reason: single developer; the PR ceremony added noise without a reviewer.
 - **v1.2 — 2026-11-08:** GEN-9 added (current idioms of the pinned versions; older choices need a reason) and JAVA-15 (no legacy APIs, enforced by the Modernizer Maven Plugin on `verify`). Reason: the M1 modernization pass found three older patterns (classic MockMvc, NullAway without JSpecify mode, Mockito self-attach) that the current versions had already replaced.
+- **v1.3 — 2026-11-14:** FE-2 and FE-14 aligned with Angular 22 (GEN-9). FE-2: standalone, OnPush and zoneless are framework defaults now, so the rule forbids opting out instead of requiring them to be written out. FE-14: file names drop the `.component`/`.service` suffix, per the current Angular style guide the scaffold already follows. Reason: found while auditing the M1 step 9 scaffold against the FE rules.

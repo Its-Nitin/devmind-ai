@@ -21,8 +21,8 @@
 | 5 | Cross-cutting web concerns (errors, correlation ID, logging, clock) | `feat/web-foundation` | 60 min | ☑ |
 | 6 | Identity: session login, CSRF, seeded user | `feat/identity-session-auth` | 90 min | ☑ |
 | 7 | Project module and `ProjectAccessPolicy` | `feat/project-crud` | 90 min | ☑ |
-| 8 | OpenAPI spec as a committed contract | `feat/openapi-contract` | 30 min | ☐ |
-| 9 | Scaffold the frontend | `chore/frontend-scaffold` | 60 min | ☐ |
+| 8 | OpenAPI spec as a committed contract | `feat/openapi-contract` | 30 min | ☑ |
+| 9 | Scaffold the frontend | `chore/frontend-scaffold` | 60 min | ☑ |
 | 10 | Frontend: login and projects | `feat/fe-login-projects` | 90 min | ☐ |
 | 11 | Docker Compose stack | `chore/compose-stack` | 60 min | ☐ |
 | 12 | CI pipeline | `ci/github-actions` | 45 min | ☑ |
