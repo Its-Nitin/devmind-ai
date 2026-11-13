@@ -28,6 +28,18 @@ server:
         secure: true
         same-site: lax
 
+springdoc: # API-10: the generated spec is committed as backend/openapi.json (OpenApiContractTest)
+  api-docs:
+    path: /v3/api-docs
+    version: openapi_3_1
+  paths-to-match: /api/**
+  default-produces-media-type: application/json
+  override-with-generic-response: false # error responses are declared by rule (OpenApiConfiguration), not guessed
+  writer-with-order-by-keys: true # stable key order, so the committed spec diffs cleanly
+  model-converters:
+    java-nullable-property-customizer:
+      enabled: true # JSpecify @Nullable becomes a nullable schema; everything else is required (OpenApiConfiguration)
+
 management:
   endpoints:
     web:

@@ -44,6 +44,15 @@ class SecurityConfiguration {
     static final String LOGOUT_PATH = "/api/auth/logout";
     static final String CSRF_PATH = "/api/auth/csrf";
 
+    /** An API endpoint anyone may call; everything else under {@code /api} needs a session. */
+    record PublicEndpoint(HttpMethod method, String path) {}
+
+    /** The one list of public API endpoints, read by the filter chain and by {@link SecurityApiDocumentation}. */
+    static final List<PublicEndpoint> PUBLIC_ENDPOINTS = List.of(
+            new PublicEndpoint(HttpMethod.POST, LOGIN_PATH),
+            new PublicEndpoint(HttpMethod.POST, LOGOUT_PATH),
+            new PublicEndpoint(HttpMethod.GET, CSRF_PATH));
+
     @Bean
     SecurityFilterChain apiSecurity(
             HttpSecurity http,
@@ -51,14 +60,14 @@ class SecurityConfiguration {
             SecurityContextRepository securityContextRepository,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
         ProblemDetailResponder problems = new ProblemDetailResponder(exceptionResolver);
-        http.authorizeHttpRequests(requests -> requests.requestMatchers(HttpMethod.POST, LOGIN_PATH, LOGOUT_PATH)
-                        .permitAll()
-                        .requestMatchers(HttpMethod.GET, CSRF_PATH)
-                        .permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/health/**")
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated())
+        http.authorizeHttpRequests(requests -> {
+                    PUBLIC_ENDPOINTS.forEach(endpoint -> requests.requestMatchers(endpoint.method(), endpoint.path())
+                            .permitAll());
+                    requests.requestMatchers("/actuator/health", "/actuator/health/**")
+                            .permitAll()
+                            .anyRequest()
+                            .authenticated();
+                })
                 // spa() sets the cookie repository and the SPA token handler (raw or masked tokens). Our own
                 // repository replaces its default so the login code rotates the same cookie, with SameSite set.
                 .csrf(csrf -> csrf.spa().csrfTokenRepository(csrfTokenRepository))

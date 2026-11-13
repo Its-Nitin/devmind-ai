@@ -72,7 +72,7 @@ class AuthorizationMatrixTest {
             entry(new Endpoint("GET", "/api/projects"), AUTHENTICATED),
             entry(new Endpoint("GET", "/api/projects/{projectId}"), PROJECT_OWNER),
             entry(new Endpoint("DELETE", "/api/projects/{projectId}"), PROJECT_OWNER),
-            // infrastructure: Spring Boot's error controller and springdoc (step 8 decides what's public)
+            // infrastructure: Spring Boot's error controller, and springdoc, which needs a session (M1 step 8)
             entry(new Endpoint("*", "/error"), AUTHENTICATED),
             entry(new Endpoint("GET", "/v3/api-docs"), AUTHENTICATED),
             entry(new Endpoint("GET", "/v3/api-docs.yaml"), AUTHENTICATED),
