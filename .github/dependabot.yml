@@ -23,3 +23,14 @@ updates:
     directory: /
     schedule:
       interval: weekly
+
+  # Base images in the Dockerfiles and compose.yaml are pinned to exact versions; these keep them current.
+  - package-ecosystem: docker
+    directories: [/backend, /frontend]
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker-compose
+    directory: /deploy
+    schedule:
+      interval: weekly

@@ -1,0 +1,23 @@
+# One origin for the SPA and the API (ADR-0010): the session and XSRF cookies need no CORS. Plain HTTP on :80;
+# compose publishes it on 127.0.0.1:8088 only.
+:80 {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# Angular routes (/projects, /login) fall back to index.html.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+		-Server
+	}
+}

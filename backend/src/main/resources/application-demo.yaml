@@ -1,0 +1,9 @@
+# Adds the demo user (DemoUserSeeder) on top of another profile: compose runs prod,demo, and local includes demo
+# through the profile group in application.yaml. The password comes only from DEVMIND_SEED_PASSWORD (12-72
+# characters, SEC-6); startup fails without it.
+devmind:
+  identity:
+    seed:
+      email: demo@devmind.local
+      display-name: Demo User
+      password: ${DEVMIND_SEED_PASSWORD:} # empty when unset, so validation fails with a clear message

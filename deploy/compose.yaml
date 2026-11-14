@@ -1,0 +1,58 @@
+# The whole stack on one machine (M1 step 11):
+#   cp deploy/.env.example deploy/.env   # then set the passwords
+#   docker compose --env-file deploy/.env -f deploy/compose.yaml up --build
+# and open http://localhost:8088. Ports bind to 127.0.0.1 only. Models stay on the host's Ollama (ADR-0006).
+name: devmind
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg17 # TEST-4: the same tag as the Testcontainers base
+    environment:
+      POSTGRES_DB: devmind
+      POSTGRES_USER: devmind
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deploy/.env}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U devmind -d devmind']
+      interval: 5s
+      retries: 20
+    ports:
+      - '127.0.0.1:5432:5432' # for the `local` profile and psql; not needed by the stack itself
+
+  backend:
+    build: ../backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod,demo # demo seeds demo@devmind.local
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/devmind
+      SPRING_DATASOURCE_USERNAME: devmind
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deploy/.env}
+      DEVMIND_SEED_PASSWORD: ${DEVMIND_SEED_PASSWORD:?set DEVMIND_SEED_PASSWORD in deploy/.env}
+    depends_on:
+      db:
+        condition: service_healthy
+    # The JRE image has no curl or wget; bash's /dev/tcp asks the internal actuator port (SPRING-5).
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -c
+        - exec 3<>/dev/tcp/127.0.0.1/8081 && printf 'GET /actuator/health HTTP/1.0\r\n\r\n' >&3 && grep -q '"UP"' <&3
+      interval: 5s
+      timeout: 3s
+      start_period: 30s
+      retries: 20
+
+  web:
+    build:
+      context: ../frontend
+      additional_contexts:
+        deploy: . # the Caddyfile lives next to this file
+    ports:
+      - '127.0.0.1:8088:80'
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  dbdata: {}

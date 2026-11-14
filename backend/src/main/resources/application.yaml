@@ -1,8 +1,11 @@
-# Baseline for every profile. Profiles: local, test, eval, prod (SPRING-4). No secrets in any file:
-# credentials come from environment variables only (SEC-6).
+# Baseline for every profile. Profiles: local, test, eval, prod (SPRING-4), plus demo, an add-on that seeds the demo
+# user. No secrets in any file: credentials come from environment variables only (SEC-6).
 spring:
   application:
     name: devmind
+  profiles:
+    group:
+      local: demo # local development always has the demo user
   jpa:
     open-in-view: false # SPRING-3
     hibernate:

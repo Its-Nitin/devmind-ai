@@ -8,12 +8,12 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * The {@code local} profile's demo user (SPRING-1). The password comes only from the {@code DEVMIND_SEED_PASSWORD}
+ * The {@code demo} profile's demo user (SPRING-1). The password comes only from the {@code DEVMIND_SEED_PASSWORD}
  * env var (SEC-6), and startup fails if it's missing or too short.
  *
  * @param password 12 to 72 characters; 72 is bcrypt's input limit
  */
-@Profile("local")
+@Profile("demo")
 @Validated
 @ConfigurationProperties("devmind.identity.seed")
 record DemoUserProperties(

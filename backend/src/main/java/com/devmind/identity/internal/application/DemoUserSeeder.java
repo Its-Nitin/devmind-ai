@@ -7,9 +7,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-/** Creates the demo user on {@code local} startup if it doesn't exist yet. There's no seed in tests. */
+/** Creates the demo user at startup under the {@code demo} profile, unless it exists. Tests never seed. */
 @Component
-@Profile("local")
+@Profile("demo")
 class DemoUserSeeder implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DemoUserSeeder.class);
@@ -28,6 +28,6 @@ class DemoUserSeeder implements ApplicationRunner {
             return;
         }
         registration.register(properties.email(), properties.displayName(), properties.password());
-        log.info("Seeded the local demo user");
+        log.info("Seeded the demo user");
     }
 }

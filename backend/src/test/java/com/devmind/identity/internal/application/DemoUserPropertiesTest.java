@@ -20,7 +20,7 @@ class DemoUserPropertiesTest {
 
     @Test
     void startupFailsWhenSeedPasswordIsMissing() {
-        // When: DEVMIND_SEED_PASSWORD is unset, the local profile binds an empty string
+        // When: DEVMIND_SEED_PASSWORD is unset, the demo profile binds an empty string
         context.withPropertyValues("devmind.identity.seed.password=")
                 .run(started -> assertThat(started)
                         .hasFailed()
