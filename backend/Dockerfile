@@ -3,7 +3,7 @@
 # proposes updates.
 
 # --- Build: compile (Error Prone + NullAway run here too) and package; tests and the verify-phase gates run in CI.
-FROM eclipse-temurin:25.0.5_8-jdk-noble AS build
+FROM eclipse-temurin:26.0.2.1_1-jdk-noble AS build
 WORKDIR /workspace
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.m2 ./mvnw -B -ntp -q -DskipTests package \
  && java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 
 # --- Runtime: JRE only, non-root. Layers go from least to most often changed, so code changes rebuild one layer.
-FROM eclipse-temurin:25.0.5_8-jre-noble
+FROM eclipse-temurin:26.0.2.1_1-jre-noble
 RUN useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin devmind
 WORKDIR /app
 COPY --from=build /workspace/extracted/dependencies/ ./
