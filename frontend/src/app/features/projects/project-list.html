@@ -1,0 +1,25 @@
+<table class="project-list">
+  <caption class="visually-hidden">
+    Your projects, newest first
+  </caption>
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Source</th>
+      <th scope="col">Location</th>
+      <th scope="col">Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (project of projects(); track project.projectId) {
+      <tr>
+        <th scope="row">{{ project.name }}</th>
+        <td>{{ sourceLabels[project.sourceType] }}</td>
+        <td class="location">{{ project.sourceLocation }}</td>
+        <td>
+          <time [attr.datetime]="project.createdAt">{{ project.createdAt | date: 'medium' }}</time>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>

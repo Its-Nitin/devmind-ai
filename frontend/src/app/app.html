@@ -1,6 +1,13 @@
-<header>
+<header class="shell-header">
   <h1>DevMind</h1>
+  @if (auth.user(); as user) {
+    <div class="session">
+      <span>{{ user.displayName }}</span>
+      <button pButton type="button" [text]="true" (click)="logOut()">Sign out</button>
+    </div>
+  }
 </header>
-<main>
+<main class="shell-main">
   <router-outlet />
 </main>
+<p-toast position="top-right" />

@@ -1,0 +1,25 @@
+.shell-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--p-content-border-color);
+
+  h1 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+}
+
+.session {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.shell-main {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}

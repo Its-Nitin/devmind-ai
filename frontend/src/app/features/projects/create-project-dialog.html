@@ -1,0 +1,56 @@
+<p-dialog header="New project" [modal]="true" [(visible)]="open" (onShow)="reset()" [style]="{ width: '32rem' }">
+  <form [formRoot]="projectForm" id="create-project-form">
+    <div class="field">
+      <label for="project-name">Name</label>
+      <input
+        pInputText
+        id="project-name"
+        [formField]="projectForm.name"
+        [attr.aria-invalid]="projectForm.name().touched() && projectForm.name().invalid()"
+        aria-describedby="project-name-errors"
+      />
+      <div id="project-name-errors" class="field-errors">
+        @if (projectForm.name().touched()) {
+          @for (error of projectForm.name().errors(); track error.kind) {
+            <small>{{ error.message }}</small>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="project-source-type">Source</label>
+      <select id="project-source-type" class="p-inputtext" [formField]="projectForm.sourceType">
+        <option value="LOCAL">Local folder</option>
+        <option value="GIT_PUBLIC">Public Git repository</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="project-source-location">
+        {{ projectForm.sourceType().value() === 'LOCAL' ? 'Folder path' : 'Repository URL' }}
+      </label>
+      <input
+        pInputText
+        id="project-source-location"
+        [formField]="projectForm.sourceLocation"
+        [attr.aria-invalid]="projectForm.sourceLocation().touched() && projectForm.sourceLocation().invalid()"
+        aria-describedby="project-source-location-errors"
+      />
+      <div id="project-source-location-errors" class="field-errors">
+        @if (projectForm.sourceLocation().touched()) {
+          @for (error of projectForm.sourceLocation().errors(); track error.kind) {
+            <small>{{ error.message }}</small>
+          }
+        }
+      </div>
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <button pButton type="button" [text]="true" (click)="open.set(false)">Cancel</button>
+    <button pButton type="submit" form="create-project-form" [disabled]="saving()">
+      {{ saving() ? 'Creating…' : 'Create' }}
+    </button>
+  </ng-template>
+</p-dialog>

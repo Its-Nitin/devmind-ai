@@ -1,0 +1,29 @@
+<section aria-labelledby="projects-heading">
+  <div class="toolbar">
+    <h2 id="projects-heading">Projects</h2>
+    <button pButton type="button" (click)="createDialogOpen.set(true)">New project</button>
+  </div>
+
+  @if (store.loading()) {
+    <div class="state" role="status">
+      <p-progress-spinner strokeWidth="6" [style]="{ width: '1.5rem', height: '1.5rem' }" aria-hidden="true" />
+      <span>Loading projects…</span>
+    </div>
+  } @else if (store.error(); as error) {
+    <div class="state" role="alert">
+      <span>{{ error }}</span>
+      <button pButton type="button" [outlined]="true" (click)="reload()">Try again</button>
+    </div>
+  } @else if (store.projects().length === 0) {
+    <div class="state">
+      <span>No projects yet. Register a codebase with “New project” to get started.</span>
+    </div>
+  } @else {
+    <dm-project-list [projects]="store.projects()" />
+    @if (store.hiddenCount() > 0) {
+      <p class="hint">{{ store.hiddenCount() }} older projects are not shown.</p>
+    }
+  }
+
+  <dm-create-project-dialog [(open)]="createDialogOpen" [saving]="store.saving()" (create)="create($event)" />
+</section>

@@ -1,0 +1,51 @@
+<section class="login" aria-labelledby="login-heading">
+  <h2 id="login-heading">Sign in</h2>
+
+  <form [formRoot]="loginForm">
+    <div class="field">
+      <label for="login-email">Email</label>
+      <input
+        pInputText
+        id="login-email"
+        type="email"
+        autocomplete="username"
+        [formField]="loginForm.email"
+        [attr.aria-invalid]="loginForm.email().touched() && loginForm.email().invalid()"
+        aria-describedby="login-email-errors"
+      />
+      <div id="login-email-errors" class="field-errors">
+        @if (loginForm.email().touched()) {
+          @for (error of loginForm.email().errors(); track error.kind) {
+            <small>{{ error.message }}</small>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="login-password">Password</label>
+      <input
+        pInputText
+        id="login-password"
+        type="password"
+        autocomplete="current-password"
+        [formField]="loginForm.password"
+        [attr.aria-invalid]="loginForm.password().touched() && loginForm.password().invalid()"
+        aria-describedby="login-password-errors"
+      />
+      <div id="login-password-errors" class="field-errors">
+        @if (loginForm.password().touched()) {
+          @for (error of loginForm.password().errors(); track error.kind) {
+            <small>{{ error.message }}</small>
+          }
+        }
+      </div>
+    </div>
+
+    <p class="form-error" role="alert">{{ signInError() }}</p>
+
+    <button pButton type="submit" [disabled]="loginForm().submitting()">
+      {{ loginForm().submitting() ? 'Signing in…' : 'Sign in' }}
+    </button>
+  </form>
+</section>
