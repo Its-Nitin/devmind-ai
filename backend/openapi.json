@@ -183,6 +183,77 @@
         "tags" : [ "Auth" ]
       }
     },
+    "/api/jobs/{jobId}" : {
+      "get" : {
+        "operationId" : "getJob",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "jobId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/JobResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Invalid request (code: validation-failed lists the fields in errors)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not signed in (code: unauthenticated)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not found, or not yours (code: <resource>-not-found)"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Unexpected error (code: internal-error)"
+          }
+        },
+        "security" : [ {
+          "session" : [ ]
+        } ],
+        "summary" : "Get a job's status and progress",
+        "tags" : [ "Jobs" ]
+      }
+    },
     "/api/projects" : {
       "get" : {
         "operationId" : "listProjects",
@@ -537,6 +608,59 @@
           }
         },
         "required" : [ "field", "message" ]
+      },
+      "JobProgressResponse" : {
+        "type" : "object",
+        "properties" : {
+          "done" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "phase" : {
+            "type" : [ "string", "null" ]
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "done", "total" ]
+      },
+      "JobResponse" : {
+        "type" : "object",
+        "properties" : {
+          "attempts" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "errorCode" : {
+            "type" : [ "string", "null" ]
+          },
+          "jobId" : {
+            "type" : "string",
+            "format" : "uuid"
+          },
+          "progress" : {
+            "$ref" : "#/components/schemas/JobProgressResponse"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "QUEUED", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED" ]
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "INDEX", "ANALYSIS", "EVAL" ]
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "attempts", "createdAt", "jobId", "progress", "status", "type", "updatedAt" ]
       },
       "LoginRequest" : {
         "type" : "object",

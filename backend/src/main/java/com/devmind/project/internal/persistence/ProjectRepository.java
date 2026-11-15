@@ -16,4 +16,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     Page<Project> findByOwnerId(UUID ownerId, Pageable pageable);
 
     boolean existsByOwnerIdAndName(UUID ownerId, String name);
+
+    boolean existsByIdAndOwnerId(long id, UUID ownerId);
 }

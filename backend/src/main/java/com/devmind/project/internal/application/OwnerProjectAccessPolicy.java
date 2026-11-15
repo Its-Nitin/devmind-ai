@@ -24,4 +24,12 @@ class OwnerProjectAccessPolicy implements ProjectAccessPolicy {
         return projects.findIdByPublicIdAndOwnerId(project.value(), user.value())
                 .orElseThrow(ProjectNotFoundException::new);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void requireOwner(UserId user, long projectId) {
+        if (!projects.existsByIdAndOwnerId(projectId, user.value())) {
+            throw new ProjectNotFoundException();
+        }
+    }
 }

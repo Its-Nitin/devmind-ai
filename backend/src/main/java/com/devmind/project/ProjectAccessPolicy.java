@@ -16,4 +16,13 @@ public interface ProjectAccessPolicy {
      *     to someone else; both look the same, so existence isn't revealed (API-8)
      */
     long requireOwner(UserId user, ProjectId project);
+
+    /**
+     * Checks that {@code user} owns the project with internal ID {@code projectId}. For lookups that only hold the
+     * internal ID, such as a job resolved to its project (ADR-0010).
+     *
+     * @throws com.devmind.shared.NotFoundException ({@code project-not-found}) if the project doesn't exist or belongs
+     *     to someone else (API-8)
+     */
+    void requireOwner(UserId user, long projectId);
 }

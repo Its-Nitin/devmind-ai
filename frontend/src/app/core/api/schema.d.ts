@@ -78,6 +78,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/jobs/{jobId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get a job's status and progress */
+    get: operations['getJob'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/api/projects': {
     parameters: {
       query?: never;
@@ -127,6 +144,29 @@ export interface components {
     FieldViolation: {
       field: string;
       message: string;
+    };
+    JobProgressResponse: {
+      /** Format: int64 */
+      done: number;
+      phase?: string | null;
+      /** Format: int64 */
+      total: number;
+    };
+    JobResponse: {
+      /** Format: int32 */
+      attempts: number;
+      /** Format: date-time */
+      createdAt: string;
+      errorCode?: string | null;
+      /** Format: uuid */
+      jobId: string;
+      progress: components['schemas']['JobProgressResponse'];
+      /** @enum {string} */
+      status: 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED';
+      /** @enum {string} */
+      type: 'INDEX' | 'ANALYSIS' | 'EVAL';
+      /** Format: date-time */
+      updatedAt: string;
     };
     LoginRequest: {
       email: string;
@@ -328,6 +368,64 @@ export interface operations {
       };
       /** @description Not signed in (code: unauthenticated) */
       401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unexpected error (code: internal-error) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  getJob: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        jobId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['JobResponse'];
+        };
+      };
+      /** @description Invalid request (code: validation-failed lists the fields in errors) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not signed in (code: unauthenticated) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not found, or not yours (code: <resource>-not-found) */
+      404: {
         headers: {
           [name: string]: unknown;
         };

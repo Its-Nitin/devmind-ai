@@ -17,6 +17,18 @@ spring:
     multipart:
       enabled: false # no uploads in v1
 
+devmind:
+  job: # ADR-0009 worker and retry tuning (JobProperties)
+    worker-enabled: true
+    poll-interval: 1s
+    max-concurrent: 2
+    lease-duration: 5m # handlers heartbeat well within this; a crashed worker's job is reclaimed after it
+    max-attempts: 3
+    retry-base-delay: 10s # doubles per attempt, with jitter (ERR-3)
+    retry-max-delay: 10m
+    progress-interval: 1s
+    shutdown-timeout: 30s
+
 server:
   error:
     include-stacktrace: never # API-3

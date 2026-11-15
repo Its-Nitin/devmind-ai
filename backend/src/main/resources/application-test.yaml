@@ -3,3 +3,9 @@
 logging:
   level:
     com.devmind: DEBUG
+
+devmind:
+  job:
+    # Tests drive JobRunner directly, or start the worker themselves (JobWorkerTest), so nothing polls in the
+    # background of unrelated tests.
+    worker-enabled: false

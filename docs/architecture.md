@@ -50,6 +50,8 @@ flowchart TB
   project --> identity
   project --> shared
   job --> shared
+  job --> project
+  job --> identity
   ingestion --> project
   ingestion --> job
   indexing --> ingestion
@@ -75,7 +77,7 @@ flowchart TB
 | `shared` | IDs, `Clock` usage, ProblemDetail types, pagination, correlation ID | Value types only, no beans with behaviour |
 | `identity` | Users, login, current-user resolution | `CurrentUser`, `UserId` |
 | `project` | Projects, ownership, **`ProjectAccessPolicy`** | `ProjectApi`, `ProjectAccessPolicy`, `ProjectId` |
-| `job` | Job table, worker, retries, progress | `JobApi`, `JobHandler` SPI, `JobId` |
+| `job` | Job table, worker, leases, retries, progress; job reads resolve to their project's `ProjectAccessPolicy` check (ADR-0010) | `JobApi`, `JobHandler` SPI (`JobContext`, `JobOutcome`), `JobId`, `JobView` |
 | `ingestion` | Clone/read sources, path validation, filtering, normalization, secret scan | `SourceSnapshotProvider` |
 | `indexing` | Revisions, blobs, symbols, chunks, edges, embedding orchestration | `IndexingApi`, `CodeParser` SPI, `RevisionReadyEvent`, read models |
 | `ai` | Model ports, adapters, prompt registry, `llm_call` audit | `ChatModelPort`, `EmbeddingPort`, `PromptRegistry` |

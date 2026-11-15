@@ -5,6 +5,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 import com.devmind.identity.internal.application.UserRegistrationService;
+import com.devmind.job.JobApi;
+import com.devmind.job.JobType;
+import com.devmind.project.ProjectAccessPolicy;
+import com.devmind.project.ProjectId;
 import com.devmind.support.IntegrationTest;
 import com.devmind.support.TestUsers;
 import com.devmind.support.TestUsers.SignedInUser;
@@ -50,6 +54,12 @@ class AuthorizationMatrixTest {
     /** Only the owner of the project in path variable {@code projectVariable}; everyone else gets 404 (API-8). */
     record OwnerScoped(String projectVariable) implements Access {}
 
+    /**
+     * Only the owner of the project that the job in path variable {@code jobVariable} belongs to; everyone else gets
+     * 404 (ADR-0010: job lookups resolve to their project).
+     */
+    record JobOwnerScoped(String jobVariable) implements Access {}
+
     record Endpoint(String method, String path) {
 
         @Override
@@ -61,6 +71,7 @@ class AuthorizationMatrixTest {
     private static final Access PUBLIC = new Public();
     private static final Access AUTHENTICATED = new Authenticated();
     private static final Access PROJECT_OWNER = new OwnerScoped("projectId");
+    private static final Access JOB_OWNER = new JobOwnerScoped("jobId");
 
     private static final Map<Endpoint, Access> MATRIX = Map.ofEntries(
             // identity
@@ -72,6 +83,8 @@ class AuthorizationMatrixTest {
             entry(new Endpoint("GET", "/api/projects"), AUTHENTICATED),
             entry(new Endpoint("GET", "/api/projects/{projectId}"), PROJECT_OWNER),
             entry(new Endpoint("DELETE", "/api/projects/{projectId}"), PROJECT_OWNER),
+            // job
+            entry(new Endpoint("GET", "/api/jobs/{jobId}"), JOB_OWNER),
             // infrastructure: Spring Boot's error controller, and springdoc, which needs a session (M1 step 8)
             entry(new Endpoint("*", "/error"), AUTHENTICATED),
             entry(new Endpoint("GET", "/v3/api-docs"), AUTHENTICATED),
@@ -82,15 +95,21 @@ class AuthorizationMatrixTest {
     private final MockMvcTester mvc;
     private final RequestMappingHandlerMapping handlerMapping;
     private final TestUsers users;
+    private final JobApi jobs;
+    private final ProjectAccessPolicy accessPolicy;
 
     @Autowired
     AuthorizationMatrixTest(
             MockMvcTester mvc,
             @Qualifier("requestMappingHandlerMapping") RequestMappingHandlerMapping handlerMapping,
-            UserRegistrationService registration) {
+            UserRegistrationService registration,
+            JobApi jobs,
+            ProjectAccessPolicy accessPolicy) {
         this.mvc = mvc;
         this.handlerMapping = handlerMapping;
         this.users = new TestUsers(mvc, registration);
+        this.jobs = jobs;
+        this.accessPolicy = accessPolicy;
     }
 
     @Test
@@ -149,6 +168,35 @@ class AuthorizationMatrixTest {
                             .doesNotContain("{");
 
                     // When / Then: the stranger first, so a DELETE by the owner can't hide a leak
+                    assertThat(signedIn(endpoint, path, stranger))
+                            .as("%s by another user", endpoint)
+                            .hasStatus(HttpStatus.NOT_FOUND);
+                    assertThat(signedIn(endpoint, path, owner))
+                            .as("%s by the owner", endpoint)
+                            .hasStatus2xxSuccessful();
+                }));
+    }
+
+    @TestFactory
+    Stream<DynamicTest> jobScopedEndpointsServeTheProjectOwnerAnd404EveryoneElse() {
+        return endpointsWith(JobOwnerScoped.class)
+                .map(endpoint -> DynamicTest.dynamicTest(endpoint.toString(), () -> {
+                    // Given: a job in the owner's project (no endpoint creates jobs yet, so submit directly)
+                    JobOwnerScoped access = (JobOwnerScoped) Objects.requireNonNull(MATRIX.get(endpoint));
+                    SignedInUser owner = users.signIn();
+                    SignedInUser stranger = users.signIn();
+                    long projectId =
+                            accessPolicy.requireOwner(owner.id(), new ProjectId(UUID.fromString(createProject(owner))));
+                    String jobId = jobs.submit(projectId, JobType.INDEX, "matrix", Map.of())
+                            .id()
+                            .value()
+                            .toString();
+                    String path = endpoint.path().replace("{" + access.jobVariable() + "}", jobId);
+                    assertThat(path)
+                            .as("only the job variable is supported so far")
+                            .doesNotContain("{");
+
+                    // When / Then
                     assertThat(signedIn(endpoint, path, stranger))
                             .as("%s by another user", endpoint)
                             .hasStatus(HttpStatus.NOT_FOUND);

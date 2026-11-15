@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
-import java.util.UUID;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +35,12 @@ class SchemaTest {
             """;
 
     private final JdbcClient jdbc;
+    private final TestProjects projects;
 
     @Autowired
     SchemaTest(JdbcClient jdbc) {
         this.jdbc = jdbc;
+        this.projects = new TestProjects(jdbc);
     }
 
     @Test
@@ -130,21 +131,8 @@ class SchemaTest {
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 
-    // The test database isn't cleaned between tests, so each test inserts its own user and project.
     private long insertProject() {
-        UUID ownerId = UUID.randomUUID();
-        jdbc.sql("""
-                        INSERT INTO app_user (public_id, email, display_name, password_hash, created_at)
-                        VALUES (?, ?, 'Schema Test', 'x', now())
-                        """).params(ownerId, "schema-" + ownerId + "@test.local").update();
-        return jdbc.sql("""
-                        INSERT INTO project (public_id, owner_id, name, source_type, source_location, created_at)
-                        VALUES (?, ?, 'p', 'LOCAL', '/targets/p', now())
-                        RETURNING id
-                        """)
-                .params(UUID.randomUUID(), ownerId)
-                .query(Long.class)
-                .single();
+        return projects.insertProject().id();
     }
 
     private long insertRevision(long projectId, String commitSha) {
