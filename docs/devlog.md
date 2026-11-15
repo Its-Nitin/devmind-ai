@@ -243,3 +243,12 @@
   - Open Dependabot PRs to triage: TypeScript 7 (check Angular 22 supports it before merging), `eclipse-temurin` 26 (a non-LTS Java; the project targets 25 LTS, so likely ignore and add a Dependabot `ignore` for non-LTS majors), jsdom 31 (major), plus routine Angular/PrimeNG/typescript-eslint bumps.
   - HTTPS for compose (only needed beyond localhost); `DEVMIND_AI_OLLAMA_BASE_URL` arrives with the AI module.
 - Next: tag `m1`, then M2 (ingestion and structural index), starting from docs/milestones/M2-ingestion-and-indexing.md.
+
+## 2026-11-15 — M2 (session 1): step 1
+- Did: `V3__indexing_core.sql` with `repository_revision`, `file_blob`, `revision_file`, `code_symbol`, `code_chunk`, following the step-1 SQL. `SchemaTest` now also checks the new tables, that deleting a project cascades through revision → files → blob → symbols → chunks (architecture §4.2), the revision idempotency key, lowercase-hex SHA, symbol line ranges and the symbol-kind CHECK. The generic FK-index check covers the new FKs with no changes needed.
+- Choices / deviations:
+  - **`V3`, not `V2`**: `V2__project_owner_public_id.sql` was taken in M1 step 7. Fixed the file name in the M2 plan.
+  - **Added CHECKs the step SQL didn't have** (DB-3): `index_config_hash` and `content_hash` must be 64 lowercase hex characters; `redaction_count`, `token_estimate` ≥ 0; `revision_file.path` at least 1 character.
+  - **`redaction_count` on `file_blob`, `chunker_version` on `code_chunk`** (as in the step SQL). Architecture §4.1 had `redaction_count` on `code_chunk` instead; updated it. Redaction has to happen before the blob content is stored, so the blob is where the count belongs.
+- Verified: `./mvnw clean verify` green (93 tests).
+- Next: step 2 (job worker).

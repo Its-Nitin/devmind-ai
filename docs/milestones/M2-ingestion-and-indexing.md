@@ -17,7 +17,7 @@
 
 | # | Step | PR | Time | Done |
 |---|---|---|---|---|
-| 1 | Schema for revisions, blobs, symbols, chunks | `feat/indexing-schema` | 60 min | ☐ |
+| 1 | Schema for revisions, blobs, symbols, chunks | `feat/indexing-schema` | 60 min | ☑ |
 | 2 | Job worker (claim, lease, heartbeat, retry) | `feat/job-worker` | 2–3 h | ☐ |
 | 3 | Ingestion: local and remote source snapshots | `feat/ingestion-sources` | 3–4 h | ☐ |
 | 4 | Ingestion: filters, normalization, secret redaction | `feat/ingestion-filters` | 2–3 h | ☐ |
@@ -32,7 +32,7 @@ Module placement: steps 3–4 go in **`ingestion`**, steps 1 and 5–8 in **`ind
 
 ---
 
-## Step 1 — Schema (60 min) · `V2__indexing_core.sql`
+## Step 1 — Schema (60 min) · `V3__indexing_core.sql` (V2 was taken by M1 step 7)
 
 ```sql
 CREATE TABLE repository_revision (
