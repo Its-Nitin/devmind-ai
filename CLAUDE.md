@@ -6,7 +6,7 @@ Read these before writing code. They're binding and win over general habits:
 3. [docs/architecture.md](docs/architecture.md) and [docs/adr/](docs/adr/README.md): design. Don't contradict an accepted ADR. Propose a new ADR instead.
 
 ## Current milestone
-M1 (walking skeleton). M0 closed 2026-11-07 (tag `m0`). Update this line when a milestone tag is created.
+M2 (ingestion and structural index). M1 closed 2026-11-15 (tag `m1`), M0 on 2026-11-07 (tag `m0`). Update this line when a milestone tag is created.
 
 ## Non-negotiables (summary; details in coding-standards.md)
 - Deterministic code computes facts; LLM output is untrusted until validated (GEN-1, AI-3).
@@ -22,7 +22,25 @@ M1 (walking skeleton). M0 closed 2026-11-07 (tag `m0`). Update this line when a 
 - Never log source code, prompts, model output or secrets (OBS-3).
 
 ## Commands
-_To be filled in M1 after scaffolding_ (build, test, run locally, run eval, regenerate OpenAPI types).
+Docker Desktop must be running for backend tests (Testcontainers) and for compose. Node version: `frontend/.nvmrc`.
+
+Backend (`cd backend`):
+- `./mvnw verify`: compile (Error Prone + NullAway), all tests, Spotless, Checkstyle, Modernizer, JaCoCo. CI runs exactly this. Use `./mvnw clean verify` as the final check, so stale `target/` output can't hide a missing file.
+- `./mvnw spotless:apply`: format Java.
+- `./mvnw -q test -Dtest=OpenApiContractTest -DupdateOpenApi=true`: regenerate `backend/openapi.json` after an API change, then regenerate the frontend types.
+
+Frontend (`cd frontend`, after `npm ci`):
+- `npm run api:types`: regenerate `src/app/core/api/schema.d.ts` from `backend/openapi.json`. CI fails if it's stale.
+- `npm run format` / `npm run format:check`, `npm run lint`, `npm test -- --watch=false`, `npm run build`.
+
+Run locally (dev, live reload):
+- Database only: `docker compose --env-file deploy/.env -f deploy/compose.yaml up db`.
+- Backend: `cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=local`, with `DB_PASSWORD` and `DEVMIND_SEED_PASSWORD` set in the shell (same values as `deploy/.env`).
+- Frontend: `cd frontend && npm start`, then http://localhost:4200 (proxies `/api` to :8080). Log in as `demo@devmind.local`.
+
+Whole stack (demo): `cp deploy/.env.example deploy/.env`, set both passwords, then `docker compose --env-file deploy/.env -f deploy/compose.yaml up --build` and open http://localhost:8088. Changing `DB_PASSWORD` later needs `down -v` (wipes data).
+
+Eval: not yet; the benchmark runner arrives with the eval milestones (PLAN.md).
 
 ## When unsure
 Stop and ask, or write the question in `docs/devlog.md`.

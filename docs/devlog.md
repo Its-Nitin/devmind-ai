@@ -228,3 +228,18 @@
   - The session cookie is `Secure` under `prod`, served over plain http at `localhost:8088`. Chrome and Firefox treat `localhost` as a secure context and accept it; Safari may not. HTTPS (Caddy's internal CA or a real host) is a deployment question for later, not M1.
   - Image build repeats the known npm install-script warnings (step 9) and the 500 kB budget warning (step 10).
 - Next: step 13 (close out M1). The CLAUDE.md "Commands" section is still a placeholder; fill it there.
+
+## 2026-11-15 — M1 closed
+- **Exit met** (PLAN.md M1): the owner ran a fresh `docker compose up` in their own browser at `localhost:8088`: login, create a project, F5 keeps the session (the `Secure` cookie is accepted on localhost), duplicate name shows the 409 toast, sign out. CI on `main` is green for the last commit with every gate enforcing (backend `verify`, frontend types/format/lint/tests/build, gitleaks full history). Exit checklist in the M1 tracker all ticked, with the evidence in earlier entries: deliberate-violation probes (steps 3, 9), `AuthorizationMatrixTest` failing on an unclassified endpoint (step 7), committed `openapi.json` + types checked in CI (steps 8, 9).
+- Wrap-up: CLAUDE.md "Commands" filled in (backend gates, OpenAPI + types regeneration, dev run, compose) and the current milestone set to M2. README gained the status and a "Run it" section.
+- What fought back in M1:
+  - **Error Prone + NullAway on JDK 25** worked without the planned JDK 21 toolchain fallback, but only with the `--add-exports`/`--add-opens` lines for `jdk.compiler` in `backend/.mvn/jvm.config`; NullAway in JSpecify mode came free once `@NullMarked` was everywhere.
+  - **CSRF with a SPA:** `csrf.spa()` plus our own `CookieCsrfTokenRepository` (SameSite), the JSON login rotating the token itself, MockMvc's `csrf()` silently replacing the repository (cookie tests had to move to a real server), logout clearing the cookie so the SPA must fetch a new token, and the SPA's expected 401s (`/me`, `/login`) needing to bypass the global 401 redirect.
+  - **Zoneless/OnPush as Angular 22 defaults** made several step instructions obsolete (no providers to add); the lint rule became "never opt out". Signal forms being stable in 22 replaced reactive forms.
+  - Tooling on this machine: Java, Node and the Docker CLI are not on the agent's PATH (see the commands in each session); a space in the repo path didn't break Docker build contexts.
+- Time: not tracked per step; spread over sessions on 2026-11-08, -10, -11, -14 and -15.
+- Carried into M2 (not blockers):
+  - Initial bundle 637 kB over the 500 kB warning budget (step 10); deferred, the owner still decides between raising the budget and trimming PrimeNG.
+  - Open Dependabot PRs to triage: TypeScript 7 (check Angular 22 supports it before merging), `eclipse-temurin` 26 (a non-LTS Java; the project targets 25 LTS, so likely ignore and add a Dependabot `ignore` for non-LTS majors), jsdom 31 (major), plus routine Angular/PrimeNG/typescript-eslint bumps.
+  - HTTPS for compose (only needed beyond localhost); `DEVMIND_AI_OLLAMA_BASE_URL` arrives with the AI module.
+- Next: tag `m1`, then M2 (ingestion and structural index), starting from docs/milestones/M2-ingestion-and-indexing.md.

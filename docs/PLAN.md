@@ -99,13 +99,13 @@ M0 closed 2026-11-07 (tag `m0`). Results and deviations are in [devlog.md](devlo
 **Exit:** the toolchain works, models are measured, the embedding model is locked, 20 labelled questions are committed, and the threat model v0 is committed.
 
 ### M1 — Walking skeleton (8–12 h)
-- [ ] Monorepo layout (architecture.md §3.4). Spring Boot app (Web, Security, Validation, Actuator, Data JPA, JDBC, Flyway, Modulith, springdoc). Angular app (standalone, strict, zoneless).
-- [ ] `deploy/compose.yaml`: `pgvector/pgvector` (pinned tag), backend, frontend (built static files), Caddy reverse proxy. Ollama runs on the host.
-- [ ] Flyway `V1__baseline.sql`: extensions (`vector`, `pg_trgm`, `citext`), `app_user`, `project`, `job`.
-- [ ] Health endpoint, ProblemDetail error handler, correlation-ID filter, JSON logs.
-- [ ] Quality gates wired up: Spotless, Checkstyle, Error Prone + NullAway, ArchUnit/Modulith `verify()` test, JaCoCo, ESLint, Prettier, Vitest/Angular test runner.
-- [ ] GitHub Actions: backend build + tests (Testcontainers), frontend lint + tests + build.
-- [ ] Login (seeded user), `POST/GET /api/projects`, ownership enforced and tested.
+- [x] Monorepo layout (architecture.md §3.4). Spring Boot app (Web, Security, Validation, Actuator, Data JPA, JDBC, Flyway, Modulith, springdoc). Angular app (standalone, strict, zoneless).
+- [x] `deploy/compose.yaml`: `pgvector/pgvector` (pinned tag), backend, frontend (built static files), Caddy reverse proxy. Ollama runs on the host.
+- [x] Flyway `V1__baseline.sql`: extensions (`vector`, `pg_trgm`, `citext`), `app_user`, `project`, `job`.
+- [x] Health endpoint, ProblemDetail error handler, correlation-ID filter, JSON logs.
+- [x] Quality gates wired up: Spotless, Checkstyle, Error Prone + NullAway, ArchUnit/Modulith `verify()` test, JaCoCo, ESLint, Prettier, Vitest/Angular test runner.
+- [x] GitHub Actions: backend build + tests (Testcontainers), frontend lint + tests + build.
+- [x] Login (seeded user), `POST/GET /api/projects`, ownership enforced and tested.
 
 **Exit:** `docker compose up` starts everything, you can log in and create a project, and CI is green with all gates enforcing.
 

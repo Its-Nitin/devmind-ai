@@ -26,7 +26,7 @@
 | 10 | Frontend: login and projects | `feat/fe-login-projects` | 90 min | ☑ |
 | 11 | Docker Compose stack | `chore/compose-stack` | 60 min | ☑ |
 | 12 | CI pipeline | `ci/github-actions` | 45 min | ☑ |
-| 13 | Close out M1 | — | 15 min | ☐ |
+| 13 | Close out M1 | — | 15 min | ☑ |
 
 Steps 3 and 12 can be merged before step 4, so every later PR runs through the gates. That's the recommended order: 1 → 2 → 3 → 12 → 4 → … .
 
@@ -449,11 +449,11 @@ Also:
 ## Step 13 — Close out M1 (15 min)
 
 ### Exit checklist (from PLAN.md M1)
-- [ ] `docker compose up` (fresh volume) → log in → create and list projects
-- [ ] CI green with every gate enforcing; deliberate violations were shown to fail
-- [ ] Authorization matrix test exists and fails on unclassified endpoints
-- [ ] `backend/openapi.json` committed; frontend types generated from it
-- [ ] No secrets in the repo; gitleaks green
+- [x] `docker compose up` (fresh volume) → log in → create and list projects
+- [x] CI green with every gate enforcing; deliberate violations were shown to fail
+- [x] Authorization matrix test exists and fails on unclassified endpoints
+- [x] `backend/openapi.json` committed; frontend types generated from it
+- [x] No secrets in the repo; gitleaks green
 
 ### Wrap-up
 1. Fill in the **Commands** section of `CLAUDE.md` (build, test, run locally, compose up, regenerate OpenAPI and types), and set "Current milestone" to M2.
