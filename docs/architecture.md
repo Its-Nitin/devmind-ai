@@ -78,7 +78,7 @@ flowchart TB
 | `identity` | Users, login, current-user resolution | `CurrentUser`, `UserId` |
 | `project` | Projects, ownership, **`ProjectAccessPolicy`** | `ProjectApi`, `ProjectAccessPolicy`, `ProjectId` |
 | `job` | Job table, worker, leases, retries, progress; job reads resolve to their project's `ProjectAccessPolicy` check (ADR-0010) | `JobApi`, `JobHandler` SPI (`JobContext`, `JobOutcome`), `JobId`, `JobView` |
-| `ingestion` | Clone/read sources, path validation, filtering, normalization, secret scan | `SourceSnapshotProvider` |
+| `ingestion` | Clone/read sources, path validation, filtering, normalization, secret scan | `SourceSnapshotProvider` (`ProjectSource` → `SnapshotOutcome` = `Opened(SourceSnapshot)` \| `Failed(SourceProblem)`), `SourceFile`, `SnapshotStats` |
 | `indexing` | Revisions, blobs, symbols, chunks, edges, embedding orchestration | `IndexingApi`, `CodeParser` SPI, `RevisionReadyEvent`, read models |
 | `ai` | Model ports, adapters, prompt registry, `llm_call` audit | `ChatModelPort`, `EmbeddingPort`, `PromptRegistry` |
 | `retrieval` | Lexical/vector/symbol retrievers, fusion, graph expansion | `RetrievalApi`, `Evidence`, `RetrievalConfig` |
@@ -332,9 +332,9 @@ Every `{projectId}`-scoped handler and every lookup by `jobId`/`analysisId` goes
 
 | Threat | Control |
 |---|---|
-| Path traversal / symlink escape on local ingestion | `toRealPath()` + `startsWith(allowedRoot)` per file; reject symlinks pointing outside; allowed roots only from server config |
-| Malicious clone (huge repo, submodules, LFS bombs) | HTTPS-only public URLs, host allow-list (`github.com`, `gitlab.com`), shallow clone, no submodules, size/file/time limits, clone into a per-job temp dir |
-| SSRF via repository URL | Scheme + host allow-list; no redirects to other hosts; reject IP literals |
+| Path traversal / symlink escape on local ingestion | Lexical check before any filesystem access, then `toRealPath()` + `startsWith(allowedRoot)`; the resolved Git and common directory must stay inside the root, contain no symlinks and have no `alternates`; files are read from the object database, so working-tree symlinks are never followed; allowed roots only from server config, checked at startup |
+| Malicious clone (huge repo, submodules, LFS bombs) | HTTPS-only public URLs, host allow-list (`github.com`, `gitlab.com`), bare clone (no checkout, so no filters or hooks), depth 1 for branches and tags, no submodules, no tags beyond the one asked for; wall-clock and size limits enforced during the transfer; one temp dir per clone, deleted on close and swept at startup; per-file size and per-commit file-count limits |
+| SSRF via repository URL | Exact host allow-list, no user-info/port/IP literal/query/percent-encoding; redirects off (`http.followRedirects=false`); JGit cut off from user/system Git config and `GIT_*` env, so `url.insteadOf` can't rewrite the URL |
 | Prompt injection via repo content | Evidence delimiting + system rule + output schema + citation validation + **no tools in Q&A**; injection cases in benchmark |
 | Secret exposure to model | Secret-file exclusion + regex/entropy scan → redaction before persistence; redaction count visible |
 | Cross-tenant data access | `ProjectAccessPolicy` everywhere; authz matrix test; IDs exposed are UUIDs |

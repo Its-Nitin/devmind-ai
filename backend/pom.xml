@@ -22,6 +22,7 @@
     <pgvector.version>0.1.6</pgvector.version>
     <jspecify.version>1.0.1</jspecify.version>
     <archunit.version>1.5.1</archunit.version>
+    <jgit.version>7.8.1.202611041320-r</jgit.version>
 
     <!-- Quality gates (coding-standards: JAVA-1/2/5/13/14, GEN-4/5, TEST-8) -->
     <error-prone.version>2.52.0</error-prone.version>
@@ -99,6 +100,13 @@
       <groupId>com.pgvector</groupId>
       <artifactId>pgvector</artifactId>
       <version>${pgvector.version}</version>
+    </dependency>
+
+    <!-- Git in-process, never the git CLI (SEC-4, T14) -->
+    <dependency>
+      <groupId>org.eclipse.jgit</groupId>
+      <artifactId>org.eclipse.jgit</artifactId>
+      <version>${jgit.version}</version>
     </dependency>
 
     <!-- Modules and null-safety (ADR-0001, JAVA-2) -->

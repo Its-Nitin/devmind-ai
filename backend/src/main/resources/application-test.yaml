@@ -9,3 +9,6 @@ devmind:
     # Tests drive JobRunner directly, or start the worker themselves (JobWorkerTest), so nothing polls in the
     # background of unrelated tests.
     worker-enabled: false
+  ingestion:
+    allowed-roots: ["${java.io.tmpdir}"] # JUnit @TempDir fixture repositories live under it
+    clone-directory: ${java.io.tmpdir}/devmind-test-clones

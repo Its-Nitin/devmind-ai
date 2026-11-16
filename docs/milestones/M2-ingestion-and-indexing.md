@@ -19,7 +19,7 @@
 |---|---|---|---|---|
 | 1 | Schema for revisions, blobs, symbols, chunks | `feat/indexing-schema` | 60 min | ☑ |
 | 2 | Job worker (claim, lease, heartbeat, retry) | `feat/job-worker` | 2–3 h | ☑ |
-| 3 | Ingestion: local and remote source snapshots | `feat/ingestion-sources` | 3–4 h | ☐ |
+| 3 | Ingestion: local and remote source snapshots | `feat/ingestion-sources` | 3–4 h | ☑ |
 | 4 | Ingestion: filters, normalization, secret redaction | `feat/ingestion-filters` | 2–3 h | ☐ |
 | 5 | Java parser and symbol extraction (golden tests) | `feat/java-parser` | 3–4 h | ☐ |
 | 6 | Identifier splitting and symbol-aware chunking | `feat/chunking` | 2 h | ☐ |
@@ -204,7 +204,7 @@ A pipeline of small, individually tested steps, applied to each `SourceFile` in 
 |---|---|---|---|
 | 1 | Path deny-list | `target/`, `build/`, `out/`, `node_modules/`, `dist/`, `.git/`, `.idea/`, `.gradle/`, `generated/`, `generated-sources/` (any depth) | `excluded.path` |
 | 2 | Secret-file patterns | `.env*`, `*.pem`, `*.key`, `*.p12`, `*.jks`, `*.keystore`, `id_rsa*`, `id_ed25519*`, `credentials*`, `*.tfstate` | `excluded.secretFile` |
-| 3 | Size cap | `> devmind.ingestion.max-file-bytes` (default 512 KB) | `excluded.size` |
+| 3 | Size cap | `> devmind.ingestion.max-file-size` (default 512 KB). Already applied by the step 3 snapshot from the blob header, so take `SnapshotStats.oversizedSkipped` | `excluded.size` |
 | 4 | Binary sniff | NUL byte in the first 8 KB | `excluded.binary` |
 | 5 | Extension allow-list | `.java .kt .xml .yml .yaml .properties .sql .md .gradle .kts .json .ts .html .scss` (only `.java` is parsed; the rest are chunked as text) | `excluded.extension` |
 | 6 | Decode | strict UTF-8 (`CodingErrorAction.REPORT`); on failure, fall back to ISO-8859-1 and flag `encodingFallback` | `encodingFallback` |

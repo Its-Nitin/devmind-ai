@@ -7,6 +7,10 @@ spring:
     username: devmind
     password: ${DB_PASSWORD}
 
+devmind:
+  ingestion:
+    allowed-roots: [D:/dev/targets] # evaluation targets (evaluation/targets.yaml); must exist, or startup fails
+
 server:
   servlet:
     session:

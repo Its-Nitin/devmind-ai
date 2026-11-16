@@ -28,6 +28,14 @@ devmind:
     retry-max-delay: 10m
     progress-interval: 1s
     shutdown-timeout: 30s
+  ingestion: # SEC-2/SEC-3 source rules and limits (IngestionProperties); only server config can widen them
+    allowed-roots: [] # LOCAL sources are rejected until the operator lists directories; each must exist at startup
+    allowed-hosts: [github.com, gitlab.com] # exact host names for GIT_PUBLIC sources
+    clone-directory: ${java.io.tmpdir}/devmind-clones # one instance only: stale clones are swept at startup
+    clone-timeout: 2m
+    max-clone-size: 200MB
+    max-files: 20000
+    max-file-size: 512KB # larger files are skipped and counted
 
 server:
   error:
