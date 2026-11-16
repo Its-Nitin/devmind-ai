@@ -78,7 +78,7 @@ flowchart TB
 | `identity` | Users, login, current-user resolution | `CurrentUser`, `UserId` |
 | `project` | Projects, ownership, **`ProjectAccessPolicy`** | `ProjectApi`, `ProjectAccessPolicy`, `ProjectId` |
 | `job` | Job table, worker, leases, retries, progress; job reads resolve to their project's `ProjectAccessPolicy` check (ADR-0010) | `JobApi`, `JobHandler` SPI (`JobContext`, `JobOutcome`), `JobId`, `JobView` |
-| `ingestion` | Clone/read sources, path validation, filtering, normalization, secret scan | `SourceSnapshotProvider` (`ProjectSource` → `SnapshotOutcome` = `Opened(SourceSnapshot)` \| `Failed(SourceProblem)`), `SourceFile`, `SnapshotStats` |
+| `ingestion` | Clone/read sources, path validation, filtering, normalization, secret scan | `SourceSnapshotProvider` (`ProjectSource` → `SnapshotOutcome` = `Opened(SourceSnapshot)` \| `Failed(SourceProblem)`), `SourceFile`, `SnapshotStats`; `IngestionPipeline` (`FileOutcome` = `Kept(NormalizedFile)` \| `Excluded(ExclusionReason)`), `IngestionStats` |
 | `indexing` | Revisions, blobs, symbols, chunks, edges, embedding orchestration | `IndexingApi`, `CodeParser` SPI, `RevisionReadyEvent`, read models |
 | `ai` | Model ports, adapters, prompt registry, `llm_call` audit | `ChatModelPort`, `EmbeddingPort`, `PromptRegistry` |
 | `retrieval` | Lexical/vector/symbol retrievers, fusion, graph expansion | `RetrievalApi`, `Evidence`, `RetrievalConfig` |
@@ -216,7 +216,7 @@ sequenceDiagram
   UI->>API: GET /jobs/{jobId} (poll)
 ```
 
-- **Filter order:** path deny-list → symlink/escape check → size cap → binary sniff → extension allow-list → secret-file patterns. Every exclusion reason is counted in stats.
+- **Filter order:** the snapshot first skips symlinks, submodules, invalid paths and files over the size cap (from the blob header, without reading them). Then `IngestionPipeline`: path deny-list → secret-file patterns → binary sniff → extension allow-list → decode → normalize → redact → hash. Secret-file patterns come before anything reads content. Every exclusion reason is counted (`IngestionStats`: kept + excluded = total).
 - **Failure isolation:** a file that fails to parse is stored with `PARSE_FAILED` and gets fixed-window chunks only. A revision fails as a whole only on infrastructure errors.
 - **Idempotency:** `(project, commit_sha, index_config_hash)`. `index_config_hash` covers parser version, chunker version, filter rules and embedding model.
 
