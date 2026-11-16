@@ -1,0 +1,5 @@
+{
+  "status" : "PARSE_FAILED",
+  "symbols" : [ ],
+  "problems" : [ "line 7, column 23: syntax error" ]
+}

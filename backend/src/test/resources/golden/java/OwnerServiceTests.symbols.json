@@ -1,0 +1,65 @@
+{
+  "status" : "OK",
+  "symbols" : [ {
+    "kind" : "CLASS",
+    "name" : "OwnerServiceTests",
+    "qualifiedName" : "org.springframework.samples.petclinic.service.OwnerServiceTests",
+    "signature" : "class OwnerServiceTests",
+    "symbolKey" : "org.springframework.samples.petclinic.service.OwnerServiceTests",
+    "modifiers" : [ ],
+    "annotations" : [ "@SpringBootTest" ],
+    "test" : true,
+    "startLine" : 11,
+    "endLine" : 31,
+    "parentIndex" : null
+  }, {
+    "kind" : "FIELD",
+    "name" : "service",
+    "qualifiedName" : "org.springframework.samples.petclinic.service.OwnerServiceTests#service",
+    "signature" : "private OwnerService service",
+    "symbolKey" : "org.springframework.samples.petclinic.service.OwnerServiceTests#service",
+    "modifiers" : [ "private" ],
+    "annotations" : [ ],
+    "test" : true,
+    "startLine" : 14,
+    "endLine" : 14,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "setUp",
+    "qualifiedName" : "org.springframework.samples.petclinic.service.OwnerServiceTests#setUp",
+    "signature" : "void setUp()",
+    "symbolKey" : "org.springframework.samples.petclinic.service.OwnerServiceTests#setUp()",
+    "modifiers" : [ ],
+    "annotations" : [ "@BeforeEach" ],
+    "test" : true,
+    "startLine" : 16,
+    "endLine" : 19,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "findsOwnerById",
+    "qualifiedName" : "org.springframework.samples.petclinic.service.OwnerServiceTests#findsOwnerById",
+    "signature" : "void findsOwnerById()",
+    "symbolKey" : "org.springframework.samples.petclinic.service.OwnerServiceTests#findsOwnerById()",
+    "modifiers" : [ ],
+    "annotations" : [ "@Test" ],
+    "test" : true,
+    "startLine" : 21,
+    "endLine" : 24,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "findsEachOwner",
+    "qualifiedName" : "org.springframework.samples.petclinic.service.OwnerServiceTests#findsEachOwner",
+    "signature" : "void findsEachOwner(int id)",
+    "symbolKey" : "org.springframework.samples.petclinic.service.OwnerServiceTests#findsEachOwner(int)",
+    "modifiers" : [ ],
+    "annotations" : [ "@ParameterizedTest", "@ValueSource(ints = {1, 2})" ],
+    "test" : true,
+    "startLine" : 26,
+    "endLine" : 30,
+    "parentIndex" : 0
+  } ],
+  "problems" : [ ]
+}

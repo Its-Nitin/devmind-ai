@@ -1,0 +1,77 @@
+{
+  "status" : "OK",
+  "symbols" : [ {
+    "kind" : "INTERFACE",
+    "name" : "InterfaceDefaults",
+    "qualifiedName" : "com.example.api.InterfaceDefaults",
+    "signature" : "public interface InterfaceDefaults<T> extends Comparable<T>",
+    "symbolKey" : "com.example.api.InterfaceDefaults",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 8,
+    "endLine" : 27,
+    "parentIndex" : null
+  }, {
+    "kind" : "FIELD",
+    "name" : "PREFIX",
+    "qualifiedName" : "com.example.api.InterfaceDefaults#PREFIX",
+    "signature" : "String PREFIX",
+    "symbolKey" : "com.example.api.InterfaceDefaults#PREFIX",
+    "modifiers" : [ ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 10,
+    "endLine" : 10,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "id",
+    "qualifiedName" : "com.example.api.InterfaceDefaults#id",
+    "signature" : "String id()",
+    "symbolKey" : "com.example.api.InterfaceDefaults#id()",
+    "modifiers" : [ ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 12,
+    "endLine" : 12,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "displayId",
+    "qualifiedName" : "com.example.api.InterfaceDefaults#displayId",
+    "signature" : "default String displayId()",
+    "symbolKey" : "com.example.api.InterfaceDefaults#displayId()",
+    "modifiers" : [ "default" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 14,
+    "endLine" : 16,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "none",
+    "qualifiedName" : "com.example.api.InterfaceDefaults#none",
+    "signature" : "static <T> InterfaceDefaults<T> none()",
+    "symbolKey" : "com.example.api.InterfaceDefaults#none()",
+    "modifiers" : [ "static" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 18,
+    "endLine" : 20,
+    "parentIndex" : 0
+  }, {
+    "kind" : "ANNOTATION",
+    "name" : "Audited",
+    "qualifiedName" : "com.example.api.InterfaceDefaults.Audited",
+    "signature" : "@interface Audited",
+    "symbolKey" : "com.example.api.InterfaceDefaults.Audited",
+    "modifiers" : [ ],
+    "annotations" : [ "@Retention(RetentionPolicy.RUNTIME)", "@Target({ElementType.TYPE, ElementType.METHOD})" ],
+    "test" : false,
+    "startLine" : 22,
+    "endLine" : 26,
+    "parentIndex" : 0
+  } ],
+  "problems" : [ ]
+}

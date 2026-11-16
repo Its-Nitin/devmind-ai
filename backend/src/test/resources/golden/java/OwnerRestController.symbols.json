@@ -1,0 +1,65 @@
+{
+  "status" : "OK",
+  "symbols" : [ {
+    "kind" : "CLASS",
+    "name" : "OwnerRestController",
+    "qualifiedName" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController",
+    "signature" : "public class OwnerRestController",
+    "symbolKey" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController",
+    "modifiers" : [ "public" ],
+    "annotations" : [ "@RestController", "@RequestMapping(\"/api\")" ],
+    "test" : false,
+    "startLine" : 9,
+    "endLine" : 34,
+    "parentIndex" : null
+  }, {
+    "kind" : "FIELD",
+    "name" : "ownerService",
+    "qualifiedName" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController#ownerService",
+    "signature" : "private final OwnerService ownerService",
+    "symbolKey" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController#ownerService",
+    "modifiers" : [ "private", "final" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 16,
+    "endLine" : 16,
+    "parentIndex" : 0
+  }, {
+    "kind" : "CONSTRUCTOR",
+    "name" : "OwnerRestController",
+    "qualifiedName" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController#OwnerRestController",
+    "signature" : "public OwnerRestController(OwnerService ownerService)",
+    "symbolKey" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController#OwnerRestController(OwnerService)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 18,
+    "endLine" : 20,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "getOwner",
+    "qualifiedName" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController#getOwner",
+    "signature" : "public ResponseEntity<OwnerDto> getOwner(Integer ownerId)",
+    "symbolKey" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController#getOwner(Integer)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ "@GetMapping(\n            value = \"/owners/{ownerId}\",\n            produces = \"application/json\")" ],
+    "test" : false,
+    "startLine" : 22,
+    "endLine" : 28,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "deleteOwner",
+    "qualifiedName" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController#deleteOwner",
+    "signature" : "public void deleteOwner(int ownerId)",
+    "symbolKey" : "org.springframework.samples.petclinic.rest.controller.OwnerRestController#deleteOwner(int)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ "@org.springframework.web.bind.annotation.DeleteMapping(\"/owners/{ownerId}\")" ],
+    "test" : false,
+    "startLine" : 30,
+    "endLine" : 33,
+    "parentIndex" : 0
+  } ],
+  "problems" : [ ]
+}

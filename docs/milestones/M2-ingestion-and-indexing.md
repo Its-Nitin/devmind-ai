@@ -21,7 +21,7 @@
 | 2 | Job worker (claim, lease, heartbeat, retry) | `feat/job-worker` | 2–3 h | ☑ |
 | 3 | Ingestion: local and remote source snapshots | `feat/ingestion-sources` | 3–4 h | ☑ |
 | 4 | Ingestion: filters, normalization, secret redaction | `feat/ingestion-filters` | 2–3 h | ☑ |
-| 5 | Java parser and symbol extraction (golden tests) | `feat/java-parser` | 3–4 h | ☐ |
+| 5 | Java parser and symbol extraction (golden tests) | `feat/java-parser` | 3–4 h | ☑ |
 | 6 | Identifier splitting and symbol-aware chunking | `feat/chunking` | 2 h | ☐ |
 | 7 | Indexing orchestration (blob reuse, batching, READY) | `feat/indexing-pipeline` | 3 h | ☐ |
 | 8 | Read APIs (revisions, files, source slices, symbols) | `feat/indexing-read-api` | 2 h | ☐ |

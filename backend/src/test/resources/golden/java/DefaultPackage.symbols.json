@@ -1,0 +1,29 @@
+{
+  "status" : "OK",
+  "symbols" : [ {
+    "kind" : "CLASS",
+    "name" : "DefaultPackage",
+    "qualifiedName" : "DefaultPackage",
+    "signature" : "class DefaultPackage",
+    "symbolKey" : "DefaultPackage",
+    "modifiers" : [ ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 1,
+    "endLine" : 3,
+    "parentIndex" : null
+  }, {
+    "kind" : "FIELD",
+    "name" : "value",
+    "qualifiedName" : "DefaultPackage#value",
+    "signature" : "int value",
+    "symbolKey" : "DefaultPackage#value",
+    "modifiers" : [ ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 2,
+    "endLine" : 2,
+    "parentIndex" : 0
+  } ],
+  "problems" : [ ]
+}

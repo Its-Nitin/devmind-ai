@@ -1,0 +1,101 @@
+{
+  "status" : "OK",
+  "symbols" : [ {
+    "kind" : "CLASS",
+    "name" : "GenericsAndOverloads",
+    "qualifiedName" : "com.example.generics.GenericsAndOverloads",
+    "signature" : "public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable",
+    "symbolKey" : "com.example.generics.GenericsAndOverloads",
+    "modifiers" : [ "public", "final" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 6,
+    "endLine" : 32,
+    "parentIndex" : null
+  }, {
+    "kind" : "METHOD",
+    "name" : "find",
+    "qualifiedName" : "com.example.generics.GenericsAndOverloads#find",
+    "signature" : "public T find(int id)",
+    "symbolKey" : "com.example.generics.GenericsAndOverloads#find(int)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 8,
+    "endLine" : 10,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "find",
+    "qualifiedName" : "com.example.generics.GenericsAndOverloads#find",
+    "signature" : "public T find(String name)",
+    "symbolKey" : "com.example.generics.GenericsAndOverloads#find(String)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 12,
+    "endLine" : 14,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "find",
+    "qualifiedName" : "com.example.generics.GenericsAndOverloads#find",
+    "signature" : "public List<T> find(List<Integer> ids)",
+    "symbolKey" : "com.example.generics.GenericsAndOverloads#find(List)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 16,
+    "endLine" : 18,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "find",
+    "qualifiedName" : "com.example.generics.GenericsAndOverloads#find",
+    "signature" : "public T find(Map<String, List<Integer>> index, java.util.Map.Entry<String, T> hint)",
+    "symbolKey" : "com.example.generics.GenericsAndOverloads#find(Map,java.util.Map.Entry)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 20,
+    "endLine" : 22,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "find",
+    "qualifiedName" : "com.example.generics.GenericsAndOverloads#find",
+    "signature" : "public void find(String... names)",
+    "symbolKey" : "com.example.generics.GenericsAndOverloads#find(String[])",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 24,
+    "endLine" : 24,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "map",
+    "qualifiedName" : "com.example.generics.GenericsAndOverloads#map",
+    "signature" : "public <U> U[] map(T[][] items, Class<? extends U> type)",
+    "symbolKey" : "com.example.generics.GenericsAndOverloads#map(T[][],Class)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 26,
+    "endLine" : 28,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "close",
+    "qualifiedName" : "com.example.generics.GenericsAndOverloads#close",
+    "signature" : "public void close()",
+    "symbolKey" : "com.example.generics.GenericsAndOverloads#close()",
+    "modifiers" : [ "public" ],
+    "annotations" : [ "@Override" ],
+    "test" : false,
+    "startLine" : 30,
+    "endLine" : 31,
+    "parentIndex" : 0
+  } ],
+  "problems" : [ ]
+}

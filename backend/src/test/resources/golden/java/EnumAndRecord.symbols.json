@@ -1,0 +1,113 @@
+{
+  "status" : "OK",
+  "symbols" : [ {
+    "kind" : "ENUM",
+    "name" : "EnumAndRecord",
+    "qualifiedName" : "com.example.types.EnumAndRecord",
+    "signature" : "public enum EnumAndRecord",
+    "symbolKey" : "com.example.types.EnumAndRecord",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 5,
+    "endLine" : 44,
+    "parentIndex" : null
+  }, {
+    "kind" : "FIELD",
+    "name" : "size",
+    "qualifiedName" : "com.example.types.EnumAndRecord#size",
+    "signature" : "private final int size",
+    "symbolKey" : "com.example.types.EnumAndRecord#size",
+    "modifiers" : [ "private", "final" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 14,
+    "endLine" : 14,
+    "parentIndex" : 0
+  }, {
+    "kind" : "CONSTRUCTOR",
+    "name" : "EnumAndRecord",
+    "qualifiedName" : "com.example.types.EnumAndRecord#EnumAndRecord",
+    "signature" : "EnumAndRecord(int size)",
+    "symbolKey" : "com.example.types.EnumAndRecord#EnumAndRecord(int)",
+    "modifiers" : [ ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 16,
+    "endLine" : 18,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "label",
+    "qualifiedName" : "com.example.types.EnumAndRecord#label",
+    "signature" : "String label()",
+    "symbolKey" : "com.example.types.EnumAndRecord#label()",
+    "modifiers" : [ ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 20,
+    "endLine" : 22,
+    "parentIndex" : 0
+  }, {
+    "kind" : "RECORD",
+    "name" : "Visit",
+    "qualifiedName" : "com.example.types.EnumAndRecord.Visit",
+    "signature" : "public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit>",
+    "symbolKey" : "com.example.types.EnumAndRecord.Visit",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 24,
+    "endLine" : 43,
+    "parentIndex" : 0
+  }, {
+    "kind" : "CONSTRUCTOR",
+    "name" : "Visit",
+    "qualifiedName" : "com.example.types.EnumAndRecord.Visit#Visit",
+    "signature" : "public Visit",
+    "symbolKey" : "com.example.types.EnumAndRecord.Visit#Visit(String,java.time.LocalDate)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 27,
+    "endLine" : 29,
+    "parentIndex" : 4
+  }, {
+    "kind" : "CONSTRUCTOR",
+    "name" : "Visit",
+    "qualifiedName" : "com.example.types.EnumAndRecord.Visit#Visit",
+    "signature" : "public Visit(String petName)",
+    "symbolKey" : "com.example.types.EnumAndRecord.Visit#Visit(String)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 31,
+    "endLine" : 33,
+    "parentIndex" : 4
+  }, {
+    "kind" : "METHOD",
+    "name" : "today",
+    "qualifiedName" : "com.example.types.EnumAndRecord.Visit#today",
+    "signature" : "static Visit today(String petName)",
+    "symbolKey" : "com.example.types.EnumAndRecord.Visit#today(String)",
+    "modifiers" : [ "static" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 35,
+    "endLine" : 37,
+    "parentIndex" : 4
+  }, {
+    "kind" : "METHOD",
+    "name" : "compareTo",
+    "qualifiedName" : "com.example.types.EnumAndRecord.Visit#compareTo",
+    "signature" : "public int compareTo(Visit other)",
+    "symbolKey" : "com.example.types.EnumAndRecord.Visit#compareTo(Visit)",
+    "modifiers" : [ "public" ],
+    "annotations" : [ "@Override" ],
+    "test" : false,
+    "startLine" : 39,
+    "endLine" : 42,
+    "parentIndex" : 4
+  } ],
+  "problems" : [ ]
+}

@@ -1,0 +1,3 @@
+class DefaultPackage {
+    int value;
+}

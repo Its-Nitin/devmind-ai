@@ -23,6 +23,7 @@
     <jspecify.version>1.0.1</jspecify.version>
     <archunit.version>1.5.1</archunit.version>
     <jgit.version>7.8.1.202611041320-r</jgit.version>
+    <javaparser.version>3.28.2</javaparser.version>
 
     <!-- Quality gates (coding-standards: JAVA-1/2/5/13/14, GEN-4/5, TEST-8) -->
     <error-prone.version>2.52.0</error-prone.version>
@@ -107,6 +108,13 @@
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit</artifactId>
       <version>${jgit.version}</version>
+    </dependency>
+
+    <!-- Java parsing (ADR-0004); the symbol solver arrives with edges in M5 -->
+    <dependency>
+      <groupId>com.github.javaparser</groupId>
+      <artifactId>javaparser-core</artifactId>
+      <version>${javaparser.version}</version>
     </dependency>
 
     <!-- Modules and null-safety (ADR-0001, JAVA-2) -->

@@ -79,7 +79,7 @@ flowchart TB
 | `project` | Projects, ownership, **`ProjectAccessPolicy`** | `ProjectApi`, `ProjectAccessPolicy`, `ProjectId` |
 | `job` | Job table, worker, leases, retries, progress; job reads resolve to their project's `ProjectAccessPolicy` check (ADR-0010) | `JobApi`, `JobHandler` SPI (`JobContext`, `JobOutcome`), `JobId`, `JobView` |
 | `ingestion` | Clone/read sources, path validation, filtering, normalization, secret scan | `SourceSnapshotProvider` (`ProjectSource` → `SnapshotOutcome` = `Opened(SourceSnapshot)` \| `Failed(SourceProblem)`), `SourceFile`, `SnapshotStats`; `IngestionPipeline` (`FileOutcome` = `Kept(NormalizedFile)` \| `Excluded(ExclusionReason)`), `IngestionStats` |
-| `indexing` | Revisions, blobs, symbols, chunks, edges, embedding orchestration | `IndexingApi`, `CodeParser` SPI, `RevisionReadyEvent`, read models |
+| `indexing` | Revisions, blobs, symbols, chunks, edges, embedding orchestration | `IndexingApi`, `CodeParser` SPI (`ParsedFile`, `ParsedSymbol`, `SymbolKind`, `ParseStatus`), `RevisionReadyEvent`, read models |
 | `ai` | Model ports, adapters, prompt registry, `llm_call` audit | `ChatModelPort`, `EmbeddingPort`, `PromptRegistry` |
 | `retrieval` | Lexical/vector/symbol retrievers, fusion, graph expansion | `RetrievalApi`, `Evidence`, `RetrievalConfig` |
 | `qa` | Chat use case, citation validation, conversations | `QaApi` |
