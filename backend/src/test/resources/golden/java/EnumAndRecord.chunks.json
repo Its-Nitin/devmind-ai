@@ -1,0 +1,71 @@
+[ {
+  "startLine" : 5,
+  "endLine" : 44,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 81,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public enum EnumAndRecord",
+  "content" : "public enum EnumAndRecord {\n    SMALL(1) {\n        @Override\n        String label() {\n            return \"s\";\n        }\n    },\n    LARGE(10);\n\n    private final int size;\n\n    EnumAndRecord(int size) …\n\n    String label() …\n\n    public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit> …\n}"
+}, {
+  "startLine" : 5,
+  "endLine" : 44,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 216,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public enum EnumAndRecord",
+  "content" : "public enum EnumAndRecord {\n    SMALL(1) {\n        @Override\n        String label() {\n            return \"s\";\n        }\n    },\n    LARGE(10);\n\n    private final int size;\n\n    EnumAndRecord(int size) {\n        this.size = size;\n    }\n\n    String label() {\n        return name().toLowerCase();\n    }\n\n    /** A visit with a compact constructor. */\n    public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit> {\n\n        public Visit {\n            Objects.requireNonNull(petName);\n        }\n\n        public Visit(String petName) {\n            this(petName, null);\n        }\n\n        static Visit today(String petName) {\n            return new Visit(petName, java.time.LocalDate.now());\n        }\n\n        @Override\n        public int compareTo(Visit other) {\n            return petName.compareTo(other.petName);\n        }\n    }\n}"
+}, {
+  "startLine" : 16,
+  "endLine" : 18,
+  "symbolIndex" : 2,
+  "tokenEstimate" : 16,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public enum EnumAndRecord · EnumAndRecord(int size)",
+  "content" : "    EnumAndRecord(int size) {\n        this.size = size;\n    }"
+}, {
+  "startLine" : 20,
+  "endLine" : 22,
+  "symbolIndex" : 3,
+  "tokenEstimate" : 16,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public enum EnumAndRecord · String label()",
+  "content" : "    String label() {\n        return name().toLowerCase();\n    }"
+}, {
+  "startLine" : 24,
+  "endLine" : 43,
+  "symbolIndex" : 4,
+  "tokenEstimate" : 76,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit>",
+  "content" : "    /** A visit with a compact constructor. */\n    public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit> {\n\n        public Visit …\n\n        public Visit(String petName) …\n\n        static Visit today(String petName) …\n\n        public int compareTo(Visit other) …\n    }"
+}, {
+  "startLine" : 24,
+  "endLine" : 43,
+  "symbolIndex" : 4,
+  "tokenEstimate" : 140,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit>",
+  "content" : "    /** A visit with a compact constructor. */\n    public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit> {\n\n        public Visit {\n            Objects.requireNonNull(petName);\n        }\n\n        public Visit(String petName) {\n            this(petName, null);\n        }\n\n        static Visit today(String petName) {\n            return new Visit(petName, java.time.LocalDate.now());\n        }\n\n        @Override\n        public int compareTo(Visit other) {\n            return petName.compareTo(other.petName);\n        }\n    }"
+}, {
+  "startLine" : 27,
+  "endLine" : 29,
+  "symbolIndex" : 5,
+  "tokenEstimate" : 20,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit> · public Visit",
+  "content" : "        public Visit {\n            Objects.requireNonNull(petName);\n        }"
+}, {
+  "startLine" : 31,
+  "endLine" : 33,
+  "symbolIndex" : 6,
+  "tokenEstimate" : 21,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit> · public Visit(String petName)",
+  "content" : "        public Visit(String petName) {\n            this(petName, null);\n        }"
+}, {
+  "startLine" : 35,
+  "endLine" : 37,
+  "symbolIndex" : 7,
+  "tokenEstimate" : 30,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit> · static Visit today(String petName)",
+  "content" : "        static Visit today(String petName) {\n            return new Visit(petName, java.time.LocalDate.now());\n        }"
+}, {
+  "startLine" : 39,
+  "endLine" : 42,
+  "symbolIndex" : 8,
+  "tokenEstimate" : 31,
+  "header" : "golden/EnumAndRecord.java · com.example.types · public record Visit(String petName, java.time.LocalDate date) implements Comparable<Visit> · public int compareTo(Visit other)",
+  "content" : "        @Override\n        public int compareTo(Visit other) {\n            return petName.compareTo(other.petName);\n        }"
+} ]

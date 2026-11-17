@@ -1,0 +1,8 @@
+[ {
+  "startLine" : 1,
+  "endLine" : 10,
+  "symbolIndex" : null,
+  "tokenEstimate" : 43,
+  "header" : "golden/SyntaxError.java",
+  "content" : "package com.example.broken;\n\npublic class SyntaxError {\n\n    public void ok() {}\n\n    public void broken( {\n        String password = \"never quoted in problems\";\n    }\n}"
+} ]

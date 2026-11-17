@@ -1,0 +1,43 @@
+[ {
+  "startLine" : 6,
+  "endLine" : 42,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 116,
+  "header" : "golden/PlainClass.java · com.example.owners · public class PlainClass",
+  "content" : "/**\n * An owner of pets.\n */\npublic class PlainClass {\n\n    private static final int MAX_PETS = 10;\n\n    /** The display name. */\n    private final String name;\n\n    private int visits, cancellations;\n\n    @Deprecated\n    private List<String> nicknames = new ArrayList<>();\n\n    public PlainClass(String name) …\n\n    public String getName() …\n\n    // An ordinary comment is not part of the range.\n    void recordVisit() …\n\n    static boolean isFull(int pets) …\n}"
+}, {
+  "startLine" : 6,
+  "endLine" : 42,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 165,
+  "header" : "golden/PlainClass.java · com.example.owners · public class PlainClass",
+  "content" : "/**\n * An owner of pets.\n */\npublic class PlainClass {\n\n    private static final int MAX_PETS = 10;\n\n    /** The display name. */\n    private final String name;\n\n    private int visits, cancellations;\n\n    @Deprecated\n    private List<String> nicknames = new ArrayList<>();\n\n    public PlainClass(String name) {\n        this.name = name;\n    }\n\n    /**\n     * Returns the name.\n     *\n     * @return never null\n     */\n    public String getName() {\n        return name;\n    }\n\n    // An ordinary comment is not part of the range.\n    void recordVisit() {\n        visits++;\n    }\n\n    static boolean isFull(int pets) {\n        return pets >= MAX_PETS;\n    }\n}"
+}, {
+  "startLine" : 21,
+  "endLine" : 23,
+  "symbolIndex" : 6,
+  "tokenEstimate" : 17,
+  "header" : "golden/PlainClass.java · com.example.owners · public class PlainClass · public PlainClass(String name)",
+  "content" : "    public PlainClass(String name) {\n        this.name = name;\n    }"
+}, {
+  "startLine" : 25,
+  "endLine" : 32,
+  "symbolIndex" : 7,
+  "tokenEstimate" : 33,
+  "header" : "golden/PlainClass.java · com.example.owners · public class PlainClass · public String getName()",
+  "content" : "    /**\n     * Returns the name.\n     *\n     * @return never null\n     */\n    public String getName() {\n        return name;\n    }"
+}, {
+  "startLine" : 35,
+  "endLine" : 37,
+  "symbolIndex" : 8,
+  "tokenEstimate" : 12,
+  "header" : "golden/PlainClass.java · com.example.owners · public class PlainClass · void recordVisit()",
+  "content" : "    void recordVisit() {\n        visits++;\n    }"
+}, {
+  "startLine" : 39,
+  "endLine" : 41,
+  "symbolIndex" : 9,
+  "tokenEstimate" : 19,
+  "header" : "golden/PlainClass.java · com.example.owners · public class PlainClass · static boolean isFull(int pets)",
+  "content" : "    static boolean isFull(int pets) {\n        return pets >= MAX_PETS;\n    }"
+} ]

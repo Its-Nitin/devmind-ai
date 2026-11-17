@@ -1,0 +1,53 @@
+{
+  "status" : "OK",
+  "symbols" : [ {
+    "kind" : "CLASS",
+    "name" : "LongMethods",
+    "qualifiedName" : "com.example.big.LongMethods",
+    "signature" : "public class LongMethods",
+    "symbolKey" : "com.example.big.LongMethods",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 3,
+    "endLine" : 143,
+    "parentIndex" : null
+  }, {
+    "kind" : "FIELD",
+    "name" : "total",
+    "qualifiedName" : "com.example.big.LongMethods#total",
+    "signature" : "private int total",
+    "symbolKey" : "com.example.big.LongMethods#total",
+    "modifiers" : [ "private" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 6,
+    "endLine" : 6,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "sum",
+    "qualifiedName" : "com.example.big.LongMethods#sum",
+    "signature" : "public int sum()",
+    "symbolKey" : "com.example.big.LongMethods#sum()",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 8,
+    "endLine" : 138,
+    "parentIndex" : 0
+  }, {
+    "kind" : "METHOD",
+    "name" : "reset",
+    "qualifiedName" : "com.example.big.LongMethods#reset",
+    "signature" : "public void reset()",
+    "symbolKey" : "com.example.big.LongMethods#reset()",
+    "modifiers" : [ "public" ],
+    "annotations" : [ ],
+    "test" : false,
+    "startLine" : 140,
+    "endLine" : 142,
+    "parentIndex" : 0
+  } ],
+  "problems" : [ ]
+}

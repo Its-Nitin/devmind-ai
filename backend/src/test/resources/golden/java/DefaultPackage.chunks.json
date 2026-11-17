@@ -1,0 +1,8 @@
+[ {
+  "startLine" : 1,
+  "endLine" : 3,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 10,
+  "header" : "golden/DefaultPackage.java · class DefaultPackage",
+  "content" : "class DefaultPackage {\n    int value;\n}"
+} ]

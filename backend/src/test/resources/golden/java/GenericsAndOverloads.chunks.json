@@ -1,0 +1,64 @@
+[ {
+  "startLine" : 6,
+  "endLine" : 32,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 116,
+  "header" : "golden/GenericsAndOverloads.java · com.example.generics · public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable",
+  "content" : "public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable {\n\n    public T find(int id) …\n\n    public T find(String name) …\n\n    public List<T> find(List<Integer> ids) …\n\n    public T find(Map<String, List<Integer>> index, java.util.Map.Entry<String, T> hint) …\n\n    public void find(String... names) {}\n\n    public <U> U[] map(T[][] items, Class<? extends U> type) …\n\n    public void close() …\n}"
+}, {
+  "startLine" : 6,
+  "endLine" : 32,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 153,
+  "header" : "golden/GenericsAndOverloads.java · com.example.generics · public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable",
+  "content" : "public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable {\n\n    public T find(int id) {\n        return null;\n    }\n\n    public T find(String name) {\n        return null;\n    }\n\n    public List<T> find(List<Integer> ids) {\n        return null;\n    }\n\n    public T find(Map<String, List<Integer>> index, java.util.Map.Entry<String, T> hint) {\n        return null;\n    }\n\n    public void find(String... names) {}\n\n    public <U> U[] map(T[][] items, Class<? extends U> type) {\n        return null;\n    }\n\n    @Override\n    public void close() {}\n}"
+}, {
+  "startLine" : 8,
+  "endLine" : 10,
+  "symbolIndex" : 1,
+  "tokenEstimate" : 14,
+  "header" : "golden/GenericsAndOverloads.java · com.example.generics · public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable · public T find(int id)",
+  "content" : "    public T find(int id) {\n        return null;\n    }"
+}, {
+  "startLine" : 12,
+  "endLine" : 14,
+  "symbolIndex" : 2,
+  "tokenEstimate" : 15,
+  "header" : "golden/GenericsAndOverloads.java · com.example.generics · public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable · public T find(String name)",
+  "content" : "    public T find(String name) {\n        return null;\n    }"
+}, {
+  "startLine" : 16,
+  "endLine" : 18,
+  "symbolIndex" : 3,
+  "tokenEstimate" : 18,
+  "header" : "golden/GenericsAndOverloads.java · com.example.generics · public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable · public List<T> find(List<Integer> ids)",
+  "content" : "    public List<T> find(List<Integer> ids) {\n        return null;\n    }"
+}, {
+  "startLine" : 20,
+  "endLine" : 22,
+  "symbolIndex" : 4,
+  "tokenEstimate" : 30,
+  "header" : "golden/GenericsAndOverloads.java · com.example.generics · public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable · public T find(Map<String, List<Integer>> index, java.util.Map.Entry<String, T> hint)",
+  "content" : "    public T find(Map<String, List<Integer>> index, java.util.Map.Entry<String, T> hint) {\n        return null;\n    }"
+}, {
+  "startLine" : 24,
+  "endLine" : 24,
+  "symbolIndex" : 5,
+  "tokenEstimate" : 10,
+  "header" : "golden/GenericsAndOverloads.java · com.example.generics · public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable · public void find(String... names)",
+  "content" : "    public void find(String... names) {}"
+}, {
+  "startLine" : 26,
+  "endLine" : 28,
+  "symbolIndex" : 6,
+  "tokenEstimate" : 23,
+  "header" : "golden/GenericsAndOverloads.java · com.example.generics · public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable · public <U> U[] map(T[][] items, Class<? extends U> type)",
+  "content" : "    public <U> U[] map(T[][] items, Class<? extends U> type) {\n        return null;\n    }"
+}, {
+  "startLine" : 30,
+  "endLine" : 31,
+  "symbolIndex" : 7,
+  "tokenEstimate" : 10,
+  "header" : "golden/GenericsAndOverloads.java · com.example.generics · public final class GenericsAndOverloads<T extends Comparable<T>, R> extends Base<T> implements Repository<T>, AutoCloseable · public void close()",
+  "content" : "    @Override\n    public void close() {}"
+} ]

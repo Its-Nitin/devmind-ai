@@ -1,0 +1,29 @@
+[ {
+  "startLine" : 3,
+  "endLine" : 143,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 38,
+  "header" : "golden/LongMethods.java · com.example.big · public class LongMethods",
+  "content" : "/** Over 60 lines, with one method over 120. */\npublic class LongMethods {\n\n    private int total;\n\n    public int sum() …\n\n    public void reset() …\n}"
+}, {
+  "startLine" : 8,
+  "endLine" : 87,
+  "symbolIndex" : 2,
+  "tokenEstimate" : 450,
+  "header" : "golden/LongMethods.java · com.example.big · public class LongMethods · public int sum()",
+  "content" : "    /** 130 lines: chunked in 80-line windows overlapping by 10. */\n    public int sum() {\n        int result = 0;\n        result += 1;\n        result += 2;\n        result += 3;\n        result += 4;\n        result += 5;\n        result += 6;\n        result += 7;\n        result += 8;\n        result += 9;\n        result += 10;\n        result += 11;\n        result += 12;\n        result += 13;\n        result += 14;\n        result += 15;\n        result += 16;\n        result += 17;\n        result += 18;\n        result += 19;\n        result += 20;\n        result += 21;\n        result += 22;\n        result += 23;\n        result += 24;\n        result += 25;\n        result += 26;\n        result += 27;\n        result += 28;\n        result += 29;\n        result += 30;\n        result += 31;\n        result += 32;\n        result += 33;\n        result += 34;\n        result += 35;\n        result += 36;\n        result += 37;\n        result += 38;\n        result += 39;\n        result += 40;\n        result += 41;\n        result += 42;\n        result += 43;\n        result += 44;\n        result += 45;\n        result += 46;\n        result += 47;\n        result += 48;\n        result += 49;\n        result += 50;\n        result += 51;\n        result += 52;\n        result += 53;\n        result += 54;\n        result += 55;\n        result += 56;\n        result += 57;\n        result += 58;\n        result += 59;\n        result += 60;\n        result += 61;\n        result += 62;\n        result += 63;\n        result += 64;\n        result += 65;\n        result += 66;\n        result += 67;\n        result += 68;\n        result += 69;\n        result += 70;\n        result += 71;\n        result += 72;\n        result += 73;\n        result += 74;\n        result += 75;\n        result += 76;\n        result += 77;"
+}, {
+  "startLine" : 78,
+  "endLine" : 138,
+  "symbolIndex" : 2,
+  "tokenEstimate" : 339,
+  "header" : "golden/LongMethods.java · com.example.big · public class LongMethods · public int sum()",
+  "content" : "        result += 68;\n        result += 69;\n        result += 70;\n        result += 71;\n        result += 72;\n        result += 73;\n        result += 74;\n        result += 75;\n        result += 76;\n        result += 77;\n        result += 78;\n        result += 79;\n        result += 80;\n        result += 81;\n        result += 82;\n        result += 83;\n        result += 84;\n        result += 85;\n        result += 86;\n        result += 87;\n        result += 88;\n        result += 89;\n        result += 90;\n        result += 91;\n        result += 92;\n        result += 93;\n        result += 94;\n        result += 95;\n        result += 96;\n        result += 97;\n        result += 98;\n        result += 99;\n        result += 100;\n        result += 101;\n        result += 102;\n        result += 103;\n        result += 104;\n        result += 105;\n        result += 106;\n        result += 107;\n        result += 108;\n        result += 109;\n        result += 110;\n        result += 111;\n        result += 112;\n        result += 113;\n        result += 114;\n        result += 115;\n        result += 116;\n        result += 117;\n        result += 118;\n        result += 119;\n        result += 120;\n        result += 121;\n        result += 122;\n        result += 123;\n        result += 124;\n        result += 125;\n        result += 126;\n        return result;\n    }"
+}, {
+  "startLine" : 140,
+  "endLine" : 142,
+  "symbolIndex" : 3,
+  "tokenEstimate" : 13,
+  "header" : "golden/LongMethods.java · com.example.big · public class LongMethods · public void reset()",
+  "content" : "    public void reset() {\n        total = 0;\n    }"
+} ]

@@ -1,0 +1,43 @@
+[ {
+  "startLine" : 8,
+  "endLine" : 27,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 54,
+  "header" : "golden/InterfaceDefaults.java · com.example.api · public interface InterfaceDefaults<T> extends Comparable<T>",
+  "content" : "public interface InterfaceDefaults<T> extends Comparable<T> {\n\n    String PREFIX = \"pet-\";\n\n    String id();\n\n    default String displayId() …\n\n    static <T> InterfaceDefaults<T> none() …\n\n    @interface Audited …\n}"
+}, {
+  "startLine" : 8,
+  "endLine" : 27,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 103,
+  "header" : "golden/InterfaceDefaults.java · com.example.api · public interface InterfaceDefaults<T> extends Comparable<T>",
+  "content" : "public interface InterfaceDefaults<T> extends Comparable<T> {\n\n    String PREFIX = \"pet-\";\n\n    String id();\n\n    default String displayId() {\n        return PREFIX + id();\n    }\n\n    static <T> InterfaceDefaults<T> none() {\n        return null;\n    }\n\n    @Retention(RetentionPolicy.RUNTIME)\n    @Target({ElementType.TYPE, ElementType.METHOD})\n    @interface Audited {\n        String value() default \"\";\n    }\n}"
+}, {
+  "startLine" : 12,
+  "endLine" : 12,
+  "symbolIndex" : 2,
+  "tokenEstimate" : 4,
+  "header" : "golden/InterfaceDefaults.java · com.example.api · public interface InterfaceDefaults<T> extends Comparable<T> · String id()",
+  "content" : "    String id();"
+}, {
+  "startLine" : 14,
+  "endLine" : 16,
+  "symbolIndex" : 3,
+  "tokenEstimate" : 17,
+  "header" : "golden/InterfaceDefaults.java · com.example.api · public interface InterfaceDefaults<T> extends Comparable<T> · default String displayId()",
+  "content" : "    default String displayId() {\n        return PREFIX + id();\n    }"
+}, {
+  "startLine" : 18,
+  "endLine" : 20,
+  "symbolIndex" : 4,
+  "tokenEstimate" : 18,
+  "header" : "golden/InterfaceDefaults.java · com.example.api · public interface InterfaceDefaults<T> extends Comparable<T> · static <T> InterfaceDefaults<T> none()",
+  "content" : "    static <T> InterfaceDefaults<T> none() {\n        return null;\n    }"
+}, {
+  "startLine" : 22,
+  "endLine" : 26,
+  "symbolIndex" : 5,
+  "tokenEstimate" : 40,
+  "header" : "golden/InterfaceDefaults.java · com.example.api · @interface Audited",
+  "content" : "    @Retention(RetentionPolicy.RUNTIME)\n    @Target({ElementType.TYPE, ElementType.METHOD})\n    @interface Audited {\n        String value() default \"\";\n    }"
+} ]

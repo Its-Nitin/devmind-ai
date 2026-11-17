@@ -331,3 +331,31 @@
 - Tests: also `JavaParserCodeParserTest` (path-based test detection, annotated method in a plain class, current syntax: sealed types, record patterns, unnamed variables, text blocks; empty file; problems never quote the source; problem cap; 50,000-deep nesting → `PARSE_FAILED`; overload and constructor keys) and `ParsedFileTest` (parent indexes, status invariants, line ranges).
 - Verified: `./mvnw clean verify` green (433 tests, 2 symlink tests skipped on Windows); the TEST-8 coverage gate now applies to `indexing.internal.parsing` and passes (about 99% of lines). No API change, so OpenAPI and frontend types are unchanged.
 - Next: step 6 (identifier splitting and symbol-aware chunking).
+
+## 2026-11-16 — M2 (session 2, cont.): step 6
+- Did: `IdentifierSplitter` (`split`, and `terms` for the identifiers in a text) and `SymbolChunker` (version `chunk-1`) with its `Chunk` record, all pure, in `indexing.internal.domain`. Chunks carry the lines, the owning symbol's index, the header, the content, the search text (header + content + split identifiers, for `to_tsvector('simple', …)` in step 7) and `ceil(chars / 4)` tokens.
+- Choices / deviations from the step text (architecture §7.1 updated):
+  - **The type header chunk keeps the type's shape.** Each multi-line method, constructor or nested type becomes one line, its signature followed by `…`, at its own indentation. Javadoc, fields and comments stay. Single-line members, such as abstract methods, stay as written. "What does OwnerService offer?" can then be answered from one chunk.
+  - **No duplicate whole-type chunk.** A small type whose header chunk elided nothing (`enum Mode`, an annotation type) gets one chunk, not two identical ones, which would only skew retrieval.
+  - **Header for a type chunk:** `path · package · type signature`, the step's member format without the member. The default package leaves out its segment. A nested member's header uses its immediate type.
+  - **Java that declares nothing** (`package-info.java`, a file of imports) is chunked as text, like `PARSE_FAILED`, so it stays searchable. **Step 7 must not require ≥ 1 symbol per `OK` Java blob** (step 7, validation phase), or every `package-info.java` would fail its revision.
+  - **The splitter stays internal for now.** The plan has M3 queries use the same splitter, but ARCH-3 allows only interfaces, records, enums and events in a module API. M3 has to expose it, e.g. through an interface method in the indexing API.
+  - `terms` skips identifiers that are one word in any case (`id`, `Owner`): `to_tsvector('simple', …)` lowercases on its own.
+- Golden tests: `ChunkerGoldenTest` writes `*.chunks.json` next to each fixture (lines, symbol, tokens, header, content), and a new `LongMethods.java` fixture (a 131-line member, so windows 8–87 and 78–138; a 141-line type, so no whole-type chunk). Reviewed by hand. Regenerate with `./mvnw -q test -Dtest=ChunkerGoldenTest -DupdateGolden=true`.
+- Tests: `IdentifierSplitterTest` (the plan's five examples plus acronyms, digits, `$`, dots and non-ASCII; `terms` dedupes and skips single words), `SymbolChunkerTest`:
+  - window arithmetic (exact fit, one line over, the end of the file, empty)
+  - text windows and every fallback to them
+  - the 120 vs 121 line edge
+  - headers, header-chunk elision, the small-type rule and its dedupe
+  - symbols past the end of the file rejected
+  - search text and token estimate
+- Verified: `./mvnw clean verify` green (476 tests, 2 symlink tests skipped on Windows; coverage gate met). Step 7's validation rule changed in the milestone doc from "≥ 1 symbol per `OK` Java blob" to "≥ 1 chunk".
+- Next: step 7 (indexing orchestration: blob reuse, batching, READY).
+
+## 2026-11-16 — CI fix: gitleaks
+- CI's `secrets` job (gitleaks, full history) had failed since the step 4 commit `3c95018`. Its 7 findings were all the fake secrets in `SecretRedactorTest` (AWS, Google, private-key blocks, a generic token), the fixtures that check the redactor catches them. Nothing real leaked. My miss: the steps 3 to 6 hand-offs ran `verify` but not the gitleaks pre-check M1 used.
+- Fix:
+  - The test now builds every fake secret from pieces at runtime (`"AKIA" + "IOSF…"`, `"-----BEGIN RSA " + "PRIVATE KEY-----"`), so no source line has a secret's shape.
+  - `.gitleaksignore` lists the 7 historic findings by exact fingerprint (commit:file:rule:line), not by path or rule, so a real secret anywhere still fails CI. History can't be rewritten (CLAUDE.md).
+- Verified: gitleaks 8.30.1 (CI's image) over all 31 commits and over `backend/src` finds no leaks; `./mvnw clean verify` green (476 tests).
+- From now on, every step's verification includes the gitleaks scan.

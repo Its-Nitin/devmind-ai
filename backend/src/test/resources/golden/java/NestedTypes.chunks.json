@@ -1,0 +1,92 @@
+[ {
+  "startLine" : 3,
+  "endLine" : 37,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 42,
+  "header" : "golden/NestedTypes.java · com.example.nesting · public class NestedTypes",
+  "content" : "public class NestedTypes {\n\n    static class StaticNested …\n\n    class Inner …\n\n    interface Callback …\n\n    enum Mode …\n\n    void useLocalAndAnonymousClasses() …\n}"
+}, {
+  "startLine" : 3,
+  "endLine" : 37,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 143,
+  "header" : "golden/NestedTypes.java · com.example.nesting · public class NestedTypes",
+  "content" : "public class NestedTypes {\n\n    static class StaticNested {\n        int depth() {\n            return 1;\n        }\n\n        class Deeper {\n            int depth() {\n                return 2;\n            }\n        }\n    }\n\n    class Inner {\n        private final String label = \"inner\";\n    }\n\n    interface Callback {\n        void call();\n    }\n\n    enum Mode {\n        ON,\n        OFF\n    }\n\n    void useLocalAndAnonymousClasses() {\n        class Local {}\n        Runnable task = new Runnable() {\n            @Override\n            public void run() {}\n        };\n    }\n}"
+}, {
+  "startLine" : 5,
+  "endLine" : 15,
+  "symbolIndex" : 1,
+  "tokenEstimate" : 21,
+  "header" : "golden/NestedTypes.java · com.example.nesting · static class StaticNested",
+  "content" : "    static class StaticNested {\n        int depth() …\n\n        class Deeper …\n    }"
+}, {
+  "startLine" : 5,
+  "endLine" : 15,
+  "symbolIndex" : 1,
+  "tokenEstimate" : 48,
+  "header" : "golden/NestedTypes.java · com.example.nesting · static class StaticNested",
+  "content" : "    static class StaticNested {\n        int depth() {\n            return 1;\n        }\n\n        class Deeper {\n            int depth() {\n                return 2;\n            }\n        }\n    }"
+}, {
+  "startLine" : 6,
+  "endLine" : 8,
+  "symbolIndex" : 2,
+  "tokenEstimate" : 14,
+  "header" : "golden/NestedTypes.java · com.example.nesting · static class StaticNested · int depth()",
+  "content" : "        int depth() {\n            return 1;\n        }"
+}, {
+  "startLine" : 10,
+  "endLine" : 14,
+  "symbolIndex" : 3,
+  "tokenEstimate" : 15,
+  "header" : "golden/NestedTypes.java · com.example.nesting · class Deeper",
+  "content" : "        class Deeper {\n            int depth() …\n        }"
+}, {
+  "startLine" : 10,
+  "endLine" : 14,
+  "symbolIndex" : 3,
+  "tokenEstimate" : 25,
+  "header" : "golden/NestedTypes.java · com.example.nesting · class Deeper",
+  "content" : "        class Deeper {\n            int depth() {\n                return 2;\n            }\n        }"
+}, {
+  "startLine" : 11,
+  "endLine" : 13,
+  "symbolIndex" : 4,
+  "tokenEstimate" : 17,
+  "header" : "golden/NestedTypes.java · com.example.nesting · class Deeper · int depth()",
+  "content" : "            int depth() {\n                return 2;\n            }"
+}, {
+  "startLine" : 17,
+  "endLine" : 19,
+  "symbolIndex" : 5,
+  "tokenEstimate" : 18,
+  "header" : "golden/NestedTypes.java · com.example.nesting · class Inner",
+  "content" : "    class Inner {\n        private final String label = \"inner\";\n    }"
+}, {
+  "startLine" : 21,
+  "endLine" : 23,
+  "symbolIndex" : 7,
+  "tokenEstimate" : 13,
+  "header" : "golden/NestedTypes.java · com.example.nesting · interface Callback",
+  "content" : "    interface Callback {\n        void call();\n    }"
+}, {
+  "startLine" : 22,
+  "endLine" : 22,
+  "symbolIndex" : 8,
+  "tokenEstimate" : 5,
+  "header" : "golden/NestedTypes.java · com.example.nesting · interface Callback · void call()",
+  "content" : "        void call();"
+}, {
+  "startLine" : 25,
+  "endLine" : 28,
+  "symbolIndex" : 9,
+  "tokenEstimate" : 12,
+  "header" : "golden/NestedTypes.java · com.example.nesting · enum Mode",
+  "content" : "    enum Mode {\n        ON,\n        OFF\n    }"
+}, {
+  "startLine" : 30,
+  "endLine" : 36,
+  "symbolIndex" : 10,
+  "tokenEstimate" : 44,
+  "header" : "golden/NestedTypes.java · com.example.nesting · public class NestedTypes · void useLocalAndAnonymousClasses()",
+  "content" : "    void useLocalAndAnonymousClasses() {\n        class Local {}\n        Runnable task = new Runnable() {\n            @Override\n            public void run() {}\n        };\n    }"
+} ]

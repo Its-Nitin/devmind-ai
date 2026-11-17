@@ -1,0 +1,36 @@
+[ {
+  "startLine" : 11,
+  "endLine" : 31,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 41,
+  "header" : "golden/OwnerServiceTests.java · org.springframework.samples.petclinic.service · class OwnerServiceTests",
+  "content" : "@SpringBootTest\nclass OwnerServiceTests {\n\n    private OwnerService service;\n\n    void setUp() …\n\n    void findsOwnerById() …\n\n    void findsEachOwner(int id) …\n}"
+}, {
+  "startLine" : 11,
+  "endLine" : 31,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 102,
+  "header" : "golden/OwnerServiceTests.java · org.springframework.samples.petclinic.service · class OwnerServiceTests",
+  "content" : "@SpringBootTest\nclass OwnerServiceTests {\n\n    private OwnerService service;\n\n    @BeforeEach\n    void setUp() {\n        service = new OwnerService();\n    }\n\n    @Test\n    void findsOwnerById() {\n        assertThat(service.findById(1)).isNotNull();\n    }\n\n    @ParameterizedTest\n    @ValueSource(ints = {1, 2})\n    void findsEachOwner(int id) {\n        assertThat(service.findById(id)).isNotNull();\n    }\n}"
+}, {
+  "startLine" : 16,
+  "endLine" : 19,
+  "symbolIndex" : 2,
+  "tokenEstimate" : 20,
+  "header" : "golden/OwnerServiceTests.java · org.springframework.samples.petclinic.service · class OwnerServiceTests · void setUp()",
+  "content" : "    @BeforeEach\n    void setUp() {\n        service = new OwnerService();\n    }"
+}, {
+  "startLine" : 21,
+  "endLine" : 24,
+  "symbolIndex" : 3,
+  "tokenEstimate" : 24,
+  "header" : "golden/OwnerServiceTests.java · org.springframework.samples.petclinic.service · class OwnerServiceTests · void findsOwnerById()",
+  "content" : "    @Test\n    void findsOwnerById() {\n        assertThat(service.findById(1)).isNotNull();\n    }"
+}, {
+  "startLine" : 26,
+  "endLine" : 30,
+  "symbolIndex" : 4,
+  "tokenEstimate" : 37,
+  "header" : "golden/OwnerServiceTests.java · org.springframework.samples.petclinic.service · class OwnerServiceTests · void findsEachOwner(int id)",
+  "content" : "    @ParameterizedTest\n    @ValueSource(ints = {1, 2})\n    void findsEachOwner(int id) {\n        assertThat(service.findById(id)).isNotNull();\n    }"
+} ]

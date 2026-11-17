@@ -1,0 +1,36 @@
+[ {
+  "startLine" : 9,
+  "endLine" : 34,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 81,
+  "header" : "golden/OwnerRestController.java · org.springframework.samples.petclinic.rest.controller · public class OwnerRestController",
+  "content" : "/**\n * Owners over REST.\n */\n@RestController\n@RequestMapping(\"/api\")\npublic class OwnerRestController {\n\n    private final OwnerService ownerService;\n\n    public OwnerRestController(OwnerService ownerService) …\n\n    public ResponseEntity<OwnerDto> getOwner(Integer ownerId) …\n\n    public void deleteOwner(int ownerId) …\n}"
+}, {
+  "startLine" : 9,
+  "endLine" : 34,
+  "symbolIndex" : 0,
+  "tokenEstimate" : 184,
+  "header" : "golden/OwnerRestController.java · org.springframework.samples.petclinic.rest.controller · public class OwnerRestController",
+  "content" : "/**\n * Owners over REST.\n */\n@RestController\n@RequestMapping(\"/api\")\npublic class OwnerRestController {\n\n    private final OwnerService ownerService;\n\n    public OwnerRestController(OwnerService ownerService) {\n        this.ownerService = ownerService;\n    }\n\n    /** Finds one owner. */\n    @GetMapping(\n            value = \"/owners/{ownerId}\",\n            produces = \"application/json\")\n    public ResponseEntity<OwnerDto> getOwner(@PathVariable(\"ownerId\") Integer ownerId) {\n        return ResponseEntity.ok(ownerService.findById(ownerId));\n    }\n\n    @org.springframework.web.bind.annotation.DeleteMapping(\"/owners/{ownerId}\")\n    public void deleteOwner(@PathVariable int ownerId) {\n        ownerService.delete(ownerId);\n    }\n}"
+}, {
+  "startLine" : 18,
+  "endLine" : 20,
+  "symbolIndex" : 2,
+  "tokenEstimate" : 27,
+  "header" : "golden/OwnerRestController.java · org.springframework.samples.petclinic.rest.controller · public class OwnerRestController · public OwnerRestController(OwnerService ownerService)",
+  "content" : "    public OwnerRestController(OwnerService ownerService) {\n        this.ownerService = ownerService;\n    }"
+}, {
+  "startLine" : 22,
+  "endLine" : 28,
+  "symbolIndex" : 3,
+  "tokenEstimate" : 73,
+  "header" : "golden/OwnerRestController.java · org.springframework.samples.petclinic.rest.controller · public class OwnerRestController · public ResponseEntity<OwnerDto> getOwner(Integer ownerId)",
+  "content" : "    /** Finds one owner. */\n    @GetMapping(\n            value = \"/owners/{ownerId}\",\n            produces = \"application/json\")\n    public ResponseEntity<OwnerDto> getOwner(@PathVariable(\"ownerId\") Integer ownerId) {\n        return ResponseEntity.ok(ownerService.findById(ownerId));\n    }"
+}, {
+  "startLine" : 30,
+  "endLine" : 33,
+  "symbolIndex" : 4,
+  "tokenEstimate" : 45,
+  "header" : "golden/OwnerRestController.java · org.springframework.samples.petclinic.rest.controller · public class OwnerRestController · public void deleteOwner(int ownerId)",
+  "content" : "    @org.springframework.web.bind.annotation.DeleteMapping(\"/owners/{ownerId}\")\n    public void deleteOwner(@PathVariable int ownerId) {\n        ownerService.delete(ownerId);\n    }"
+} ]

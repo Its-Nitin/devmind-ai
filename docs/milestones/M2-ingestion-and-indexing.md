@@ -22,7 +22,7 @@
 | 3 | Ingestion: local and remote source snapshots | `feat/ingestion-sources` | 3–4 h | ☑ |
 | 4 | Ingestion: filters, normalization, secret redaction | `feat/ingestion-filters` | 2–3 h | ☑ |
 | 5 | Java parser and symbol extraction (golden tests) | `feat/java-parser` | 3–4 h | ☑ |
-| 6 | Identifier splitting and symbol-aware chunking | `feat/chunking` | 2 h | ☐ |
+| 6 | Identifier splitting and symbol-aware chunking | `feat/chunking` | 2 h | ☑ |
 | 7 | Indexing orchestration (blob reuse, batching, READY) | `feat/indexing-pipeline` | 3 h | ☐ |
 | 8 | Read APIs (revisions, files, source slices, symbols) | `feat/indexing-read-api` | 2 h | ☐ |
 | 9 | UI: indexing status, file tree, code viewer, symbol search | `feat/fe-explorer` | 3–4 h | ☐ |
@@ -309,7 +309,7 @@ Tests:
 6. **Validation phase:**
    - count of `revision_file` = kept files;
    - every blob has `parse_status`;
-   - every Java blob with `OK` has ≥ 1 symbol.
+   - every Java blob with `OK` has ≥ 1 chunk (not ≥ 1 symbol: `package-info.java` declares nothing and is chunked as text, step 6).
 
    Then set status `READY`, `ready_at`, and `stats` = `{filesKept, excluded{…}, blobsReused, blobsNew, symbols, chunks, parseFailures, redactions, durationMs}`.
 7. Publish `RevisionReadyEvent(projectId, revisionId, commitSha)` (ARCH-6). M3 listens for it.

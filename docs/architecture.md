@@ -249,8 +249,8 @@ flowchart LR
 | Source | Chunk unit | Header (prepended for embedding and shown to the model) |
 |---|---|---|
 | Java method/constructor | One chunk per member. Members over 120 lines are split in 80-line windows with 10-line overlap. | `path · package · class signature · member signature` |
-| Java type (class body without members) | Declaration + fields + annotations | `path · package` |
-| Small type (< 60 lines) | Whole type as one chunk (in addition to member chunks) | same |
+| Java type (class body without members) | Declaration + fields + annotations, with each multi-line method, constructor or nested type reduced to one line: its signature followed by `…` | `path · package · type signature` |
+| Small type (< 60 lines) | Whole type as one chunk (in addition to member chunks), unless it would repeat the header chunk (nothing elided) | same |
 | Non-Java text (yaml, properties, sql, xml, md) | 60-line windows, 10-line overlap | `path` |
 
 ### 7.2 Lexical search text
