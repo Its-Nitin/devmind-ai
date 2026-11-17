@@ -1,0 +1,11 @@
+# Known false positives in history, ignored by exact fingerprint (commit:file:rule:line), never by path or rule.
+# Commit 3c95018 (M2 step 4) wrote fake secrets literally into SecretRedactorTest, the test that the redactor
+# catches them. The file now builds them from pieces at runtime, so no later commit has these shapes. History
+# can't be rewritten (CLAUDE.md), hence this list. Add an entry only for a reviewed, fake value.
+3c95018a35a9dc62f6fb12c6465e70743a9934f6:backend/src/test/java/com/devmind/ingestion/internal/domain/SecretRedactorTest.java:aws-access-token:88
+3c95018a35a9dc62f6fb12c6465e70743a9934f6:backend/src/test/java/com/devmind/ingestion/internal/domain/SecretRedactorTest.java:gcp-api-key:93
+3c95018a35a9dc62f6fb12c6465e70743a9934f6:backend/src/test/java/com/devmind/ingestion/internal/domain/SecretRedactorTest.java:private-key:24
+3c95018a35a9dc62f6fb12c6465e70743a9934f6:backend/src/test/java/com/devmind/ingestion/internal/domain/SecretRedactorTest.java:private-key:37
+3c95018a35a9dc62f6fb12c6465e70743a9934f6:backend/src/test/java/com/devmind/ingestion/internal/domain/SecretRedactorTest.java:private-key:49
+3c95018a35a9dc62f6fb12c6465e70743a9934f6:backend/src/test/java/com/devmind/ingestion/internal/domain/SecretRedactorTest.java:private-key:65
+3c95018a35a9dc62f6fb12c6465e70743a9934f6:backend/src/test/java/com/devmind/ingestion/internal/domain/SecretRedactorTest.java:generic-api-key:127
