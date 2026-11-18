@@ -15,4 +15,13 @@ public interface SourceSnapshotProvider {
      *     and never throws for invalid input, rejected sources or unreachable repositories.
      */
     SnapshotOutcome open(ProjectSource source, String ref);
+
+    /**
+     * Resolves {@code ref} to the commit it names now, cheaply: a local repository is read in place, a remote one gets
+     * a single {@code ls-remote} and nothing is downloaded. The same source and ref rules as {@link #open} apply. Used
+     * to key index jobs by commit before any work is queued.
+     *
+     * @return the commit, or the problem; never null, and never throws for rejected input or unreachable sources
+     */
+    RefResolution resolve(ProjectSource source, String ref);
 }

@@ -42,6 +42,29 @@ public final class GitSources {
     }
 
     /**
+     * Resolves {@code ref} in the repository at {@code location} (SEC-2) without reading any file.
+     *
+     * @return the commit SHA, 40 lowercase hex characters
+     * @throws SourceRejection if the location or ref is rejected, or the repository can't be read
+     */
+    public String resolveLocal(String location, RefName ref) throws SourceRejection {
+        try (Repository repository = local.open(location)) {
+            return CommitSnapshots.resolveCommit(repository, ref);
+        }
+    }
+
+    /**
+     * Resolves {@code ref} on the remote with one {@code ls-remote}, downloading nothing (SEC-3).
+     *
+     * @param uri already validated against the remote URL policy
+     * @return the commit SHA; for a SHA prefix that names no branch or tag, the prefix as given
+     * @throws SourceRejection if the ref isn't advertised, or the repository is missing or unreachable
+     */
+    public String resolveRemote(URI uri, RefName ref) throws SourceRejection {
+        return remote.resolve(uri.toString(), ref);
+    }
+
+    /**
      * Clones {@code uri} and opens {@code ref} (SEC-3). The snapshot deletes the clone when closed.
      *
      * @param uri already validated against the remote URL policy

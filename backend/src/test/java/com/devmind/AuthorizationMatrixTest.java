@@ -60,6 +60,13 @@ class AuthorizationMatrixTest {
      */
     record JobOwnerScoped(String jobVariable) implements Access {}
 
+    /**
+     * Like {@link OwnerScoped}, for a command that takes {@code body} and whose success also depends on state the
+     * matrix doesn't set up (e.g. a real repository): everyone but the owner gets 404, and the owner gets past
+     * authorization (no 401, 403 or 404), whatever the command then answers.
+     */
+    record OwnerScopedCommand(String projectVariable, String body) implements Access {}
+
     record Endpoint(String method, String path) {
 
         @Override
@@ -85,6 +92,10 @@ class AuthorizationMatrixTest {
             entry(new Endpoint("DELETE", "/api/projects/{projectId}"), PROJECT_OWNER),
             // job
             entry(new Endpoint("GET", "/api/jobs/{jobId}"), JOB_OWNER),
+            // indexing
+            entry(
+                    new Endpoint("POST", "/api/projects/{projectId}/index-jobs"),
+                    new OwnerScopedCommand("projectId", "{\"ref\": \"main\"}")),
             // infrastructure: Spring Boot's error controller, and springdoc, which needs a session (M1 step 8)
             entry(new Endpoint("*", "/error"), AUTHENTICATED),
             entry(new Endpoint("GET", "/v3/api-docs"), AUTHENTICATED),
@@ -206,6 +217,28 @@ class AuthorizationMatrixTest {
                 }));
     }
 
+    @TestFactory
+    Stream<DynamicTest> ownerScopedCommandsAdmitTheOwnerAnd404EveryoneElse() {
+        return endpointsWith(OwnerScopedCommand.class)
+                .map(endpoint -> DynamicTest.dynamicTest(endpoint.toString(), () -> {
+                    // Given
+                    OwnerScopedCommand access = (OwnerScopedCommand) Objects.requireNonNull(MATRIX.get(endpoint));
+                    SignedInUser owner = users.signIn();
+                    SignedInUser stranger = users.signIn();
+                    String path = endpoint.path().replace("{" + access.projectVariable() + "}", createProject(owner));
+
+                    // When / Then
+                    assertThat(signedIn(endpoint, path, stranger, access.body()))
+                            .as("%s by another user", endpoint)
+                            .hasStatus(HttpStatus.NOT_FOUND);
+                    assertThat(signedIn(endpoint, path, owner, access.body())
+                                    .getResponse()
+                                    .getStatus())
+                            .as("%s by the owner gets past authorization", endpoint)
+                            .isNotIn(401, 403, 404);
+                }));
+    }
+
     private static Stream<Endpoint> endpointsOf(RequestMappingInfo info) {
         Set<String> methods =
                 info.getMethodsCondition().getMethods().stream().map(Enum::name).collect(Collectors.toSet());
@@ -235,6 +268,16 @@ class AuthorizationMatrixTest {
                 .uri(path)
                 .with(csrf())
                 .session(user.session())
+                .exchange();
+    }
+
+    private MvcTestResult signedIn(Endpoint endpoint, String path, SignedInUser user, String body) {
+        return mvc.method(httpMethod(endpoint))
+                .uri(path)
+                .with(csrf())
+                .session(user.session())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
                 .exchange();
     }
 

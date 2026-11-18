@@ -3,6 +3,8 @@ package com.devmind.shared.internal.web;
 import com.devmind.shared.ConflictException;
 import com.devmind.shared.DomainException;
 import com.devmind.shared.NotFoundException;
+import com.devmind.shared.UnavailableException;
+import com.devmind.shared.UnprocessableException;
 import java.net.URI;
 import java.util.List;
 import java.util.Locale;
@@ -57,6 +59,16 @@ class ProblemDetailsAdvice extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     ResponseEntity<Object> handleConflict(ConflictException ex, WebRequest request) {
         return domainProblem(HttpStatus.CONFLICT, ex, request);
+    }
+
+    @ExceptionHandler(UnprocessableException.class)
+    ResponseEntity<Object> handleUnprocessable(UnprocessableException ex, WebRequest request) {
+        return domainProblem(HttpStatus.UNPROCESSABLE_CONTENT, ex, request);
+    }
+
+    @ExceptionHandler(UnavailableException.class)
+    ResponseEntity<Object> handleUnavailable(UnavailableException ex, WebRequest request) {
+        return domainProblem(HttpStatus.SERVICE_UNAVAILABLE, ex, request);
     }
 
     /*

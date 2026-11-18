@@ -298,8 +298,8 @@ class JobRunnerTest {
 
     @Test
     void claimsNothingOfATypeWithoutAHandler() {
-        // Given
-        jobApi.submit(projectId, JobType.INDEX, "k1", Map.of());
+        // Given: ANALYSIS gets its handler in M5 (INDEX has one since M2 step 7)
+        jobApi.submit(projectId, JobType.ANALYSIS, "k1", Map.of());
 
         // When / Then
         assertThat(runner.claimNext(WORKER_A)).isEmpty();

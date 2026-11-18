@@ -131,6 +131,26 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/projects/{projectId}/index-jobs': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Index the project at a ref
+     * @description Resolves the ref to a commit and queues an index job for it. Asking again for the same commit returns the same job, so a repeat is a no-op.
+     */
+    post: operations['startIndexJob'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -144,6 +164,10 @@ export interface components {
     FieldViolation: {
       field: string;
       message: string;
+    };
+    IndexJobResponse: {
+      /** Format: uuid */
+      jobId: string;
     };
     JobProgressResponse: {
       /** Format: int64 */
@@ -209,6 +233,9 @@ export interface components {
       sourceLocation: string;
       /** @enum {string} */
       sourceType: 'LOCAL' | 'GIT_PUBLIC';
+    };
+    StartIndexRequest: {
+      ref: string;
     };
     UserResponse: {
       displayName: string;
@@ -682,6 +709,97 @@ export interface operations {
       };
       /** @description Unexpected error (code: internal-error) */
       500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  startIndexJob: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        projectId: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StartIndexRequest'];
+      };
+    };
+    responses: {
+      /** @description Queued, or already queued or done for this commit */
+      202: {
+        headers: {
+          /** @description Path of the job to poll */
+          Location?: string;
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['IndexJobResponse'];
+        };
+      };
+      /** @description Invalid request (code: validation-failed lists the fields in errors) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not signed in (code: unauthenticated) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description CSRF token missing or invalid (code: invalid-csrf-token) */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not found, or not yours (code: <resource>-not-found) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The ref or source can't be indexed (code: ref-invalid, ref-not-found, ref-ambiguous, source-location-not-allowed, source-location-not-found, source-not-a-repository, source-url-not-allowed) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unexpected error (code: internal-error) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The source can't be reached right now; try again (code: source-unreachable, source-timeout) */
+      503: {
         headers: {
           [name: string]: unknown;
         };

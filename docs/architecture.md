@@ -57,6 +57,8 @@ flowchart TB
   indexing --> ingestion
   indexing --> ai
   indexing --> job
+  indexing --> project
+  indexing --> identity
   retrieval --> indexing
   retrieval --> ai
   qa --> retrieval
@@ -313,7 +315,7 @@ All under `/api`, JSON, ProblemDetail (RFC 9457) errors, `X-Correlation-Id`. Lis
 | POST | `/auth/login`, `/auth/logout`; GET `/auth/me` | session cookie, CSRF token cookie |
 | POST/GET | `/projects` | create / list own |
 | GET/DELETE | `/projects/{projectId}` | delete cascades |
-| POST | `/projects/{projectId}/index-jobs` | `{ref}` → 202 `{jobId}` (idempotent) |
+| POST | `/projects/{projectId}/index-jobs` | `{ref}` → 202 `{jobId}` + `Location: /api/jobs/{jobId}`; the ref is resolved first and the job keyed by commit + index config hash, so the same commit returns the same job (idempotent); 422 for a rejected ref or source, 503 if the source is unreachable |
 | GET | `/jobs/{jobId}` | status, progress, error |
 | GET | `/projects/{projectId}/revisions` | indexed revisions + stats |
 | GET | `/projects/{projectId}/revisions/{sha}/files?path=` | tree listing |

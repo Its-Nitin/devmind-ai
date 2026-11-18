@@ -5,6 +5,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 
 import com.devmind.shared.ConflictException;
 import com.devmind.shared.NotFoundException;
+import com.devmind.shared.UnavailableException;
+import com.devmind.shared.UnprocessableException;
 import com.devmind.support.IntegrationTest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -88,6 +90,33 @@ class ProblemDetailsTest {
     }
 
     @Test
+    void unprocessableExceptionMapsTo422WithItsCode() {
+        // When
+        MvcTestResult result = mvc.get().uri("/test-probe/unprocessable").exchange();
+
+        // Then
+        assertThat(result)
+                .hasStatus(HttpStatus.UNPROCESSABLE_CONTENT)
+                .bodyJson()
+                .isLenientlyEqualTo("""
+                        {"type": "https://devmind.dev/problems/ref-not-found", "status": 422,
+                         "code": "ref-not-found", "detail": "No commit matches the ref."}
+                        """);
+    }
+
+    @Test
+    void unavailableExceptionMapsTo503WithItsCode() {
+        // When
+        MvcTestResult result = mvc.get().uri("/test-probe/unavailable").exchange();
+
+        // Then
+        assertThat(result).hasStatus(HttpStatus.SERVICE_UNAVAILABLE).bodyJson().isLenientlyEqualTo("""
+                        {"type": "https://devmind.dev/problems/source-unreachable", "status": 503,
+                         "code": "source-unreachable"}
+                        """);
+    }
+
+    @Test
     void invalidBodyMapsTo400WithFieldErrors() {
         // Given: name is longer than the 5-character limit
         String body = """
@@ -147,6 +176,16 @@ class ProblemDetailsTest {
         @GetMapping("/test-probe/conflict")
         void conflict() {
             throw new ConflictException("thing-exists", "Thing already exists.");
+        }
+
+        @GetMapping("/test-probe/unprocessable")
+        void unprocessable() {
+            throw new UnprocessableException("ref-not-found", "No commit matches the ref.");
+        }
+
+        @GetMapping("/test-probe/unavailable")
+        void unavailable() {
+            throw new UnavailableException("source-unreachable", "The repository couldn't be read.");
         }
 
         @GetMapping("/test-probe/boom")

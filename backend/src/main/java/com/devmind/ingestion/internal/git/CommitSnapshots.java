@@ -57,6 +57,19 @@ final class CommitSnapshots {
         }
     }
 
+    /**
+     * Resolves {@code ref} to its commit SHA without listing any files.
+     *
+     * @throws SourceRejection {@code REF_NOT_FOUND}, {@code REF_AMBIGUOUS}, or {@code UNREACHABLE} on I/O errors
+     */
+    static String resolveCommit(Repository repository, RefName ref) throws SourceRejection {
+        try (ObjectReader reader = repository.newObjectReader()) {
+            return resolve(repository, reader, ref).name();
+        } catch (IOException ex) {
+            throw new SourceRejection(SourceProblem.UNREACHABLE, ex);
+        }
+    }
+
     /** Exactly {@code refs/heads/<ref>}, then {@code refs/tags/<ref>}, then a commit SHA prefix, as Git orders them. */
     private static RevCommit resolve(Repository repository, ObjectReader reader, RefName ref)
             throws IOException, SourceRejection {

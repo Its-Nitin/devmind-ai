@@ -8,7 +8,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
@@ -17,6 +18,7 @@ import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.errors.NoRemoteRepositoryException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.lib.StoredConfig;
@@ -79,6 +81,56 @@ final class RemoteCloner {
         }
     }
 
+    /**
+     * Resolves {@code ref} without downloading any object: one {@code ls-remote}, from a throwaway bare repository so
+     * redirects stay off. A branch or tag gives its commit (an annotated tag peeled); a SHA-like ref that names no
+     * branch or tag is returned as given, since only a fetch could check it.
+     *
+     * @return 40 lowercase hex characters, or for a SHA prefix the prefix as given
+     * @throws SourceRejection {@code REF_NOT_FOUND}, {@code LOCATION_NOT_FOUND} or {@code UNREACHABLE}
+     */
+    String resolve(String uri, RefName ref) throws SourceRejection {
+        Path directory;
+        try {
+            directory = workspace.newCloneDirectory();
+        } catch (IOException ex) {
+            throw new SourceRejection(SourceProblem.UNREACHABLE, ex);
+        }
+        Repository repository = null;
+        try {
+            repository = initBare(directory);
+            Collection<Ref> advertised;
+            try (Git git = Git.wrap(repository)) {
+                advertised = git.lsRemote()
+                        .setRemote(uri)
+                        .setTimeout(timeoutSeconds())
+                        .call();
+            } catch (GitAPIException | JGitInternalException ex) {
+                throw new SourceRejection(problemOf(ex), ex);
+            }
+            Ref named = namedRef(advertised, ref);
+            if (named != null) {
+                ObjectId commit = Objects.requireNonNullElse(named.getPeeledObjectId(), named.getObjectId());
+                if (commit != null) {
+                    return commit.name();
+                }
+            }
+            if (ref.mayBeSha()) {
+                return ref.value();
+            }
+            throw new SourceRejection(SourceProblem.REF_NOT_FOUND);
+        } finally {
+            if (repository != null) {
+                repository.close();
+            }
+            workspace.delete(directory);
+        }
+    }
+
+    private int timeoutSeconds() {
+        return Math.clamp(limits.cloneTimeout().toSeconds(), 1, Integer.MAX_VALUE);
+    }
+
     private static Repository initBare(Path directory) throws SourceRejection {
         try {
             Repository repository = new FileRepositoryBuilder()
@@ -101,7 +153,7 @@ final class RemoteCloner {
     }
 
     private void fetch(Repository repository, String uri, RefName ref, CloneGuard guard) throws SourceRejection {
-        int timeoutSeconds = Math.clamp(limits.cloneTimeout().toSeconds(), 1, Integer.MAX_VALUE);
+        int timeoutSeconds = timeoutSeconds();
         try (Git git = Git.wrap(repository)) { // wrap: closing Git leaves the repository open
             // List refs first, so a missing ref fails before anything is downloaded.
             FetchPlan plan = plan(
@@ -126,8 +178,9 @@ final class RemoteCloner {
 
     /** Just the branch or tag named {@code ref} (branches win, as in Git), else everything if it may be a SHA. */
     private static FetchPlan plan(Collection<Ref> advertised, RefName ref) throws SourceRejection {
-        String name = namedRef(advertised, ref);
-        if (name != null) {
+        Ref named = namedRef(advertised, ref);
+        if (named != null) {
+            String name = named.getName();
             return new FetchPlan(List.of(new RefSpec("+" + name + ":" + name)), true);
         }
         if (ref.mayBeSha()) {
@@ -136,11 +189,13 @@ final class RemoteCloner {
         throw new SourceRejection(SourceProblem.REF_NOT_FOUND);
     }
 
-    private static @Nullable String namedRef(Collection<Ref> advertised, RefName ref) {
-        Set<String> names = advertised.stream().map(Ref::getName).collect(Collectors.toSet());
+    /** The advertised branch named {@code ref}, else the tag; branches win, as in Git. */
+    private static @Nullable Ref namedRef(Collection<Ref> advertised, RefName ref) {
+        Map<String, Ref> byName = advertised.stream().collect(Collectors.toMap(Ref::getName, r -> r, (a, b) -> a));
         for (String prefix : List.of(Constants.R_HEADS, Constants.R_TAGS)) {
-            if (names.contains(prefix + ref.value())) {
-                return prefix + ref.value();
+            Ref found = byName.get(prefix + ref.value());
+            if (found != null) {
+                return found;
             }
         }
         return null;

@@ -359,3 +359,46 @@
   - `.gitleaksignore` lists the 7 historic findings by exact fingerprint (commit:file:rule:line), not by path or rule, so a real secret anywhere still fails CI. History can't be rewritten (CLAUDE.md).
 - Verified: gitleaks 8.30.1 (CI's image) over all 31 commits and over `backend/src` finds no leaks; `./mvnw clean verify` green (476 tests).
 - From now on, every step's verification includes the gitleaks scan.
+
+## 2026-11-17 — M2 (session 3): step 7
+- Did: indexing orchestration.
+  - `POST /api/projects/{projectId}/index-jobs {ref}`: 202, `Location: /api/jobs/{id}`, body `{jobId}` (API-4).
+  - `IndexJobService`: policy first, then resolve the ref, then submit.
+  - `IndexRevisionJobHandler` (`INDEX`): snapshot, then the ingestion pipeline, then parse and chunk the new blobs, then batched writes.
+  - `IndexWriter`: one short transaction per batch, plus start and finish. `IndexingQueries`: JdbcClient plus batched inserts.
+  - `IndexToolchain`: parsers, pipeline and config hash. `IndexingProperties`: `devmind.indexing.batch-size`, 500.
+  - Public `RevisionReadyEvent`, published in the transaction that marks the revision READY.
+- Owner decisions (asked before building, CLAUDE.md "don't guess on public module APIs"):
+  - **Source in the job payload** (`{ref, sourceType, sourceLocation}`), captured at submit after the owner check. The handler runs without a user and needs no new project API. Projects aren't editable in v1.
+  - **`SourceSnapshotProvider.resolve(source, ref)`** (new, returns `RefResolution`). Local repos are resolved in place; remote ones with one `ls-remote` from a throwaway bare repo (redirects off, no download). This fixes a plan bug: with the planned `ref` key for remote sources, `JobApi.submit` returns the existing SUCCEEDED job, so a moved branch could never be re-indexed. The key is now `commit:configHash` for every source.
+  - **422 / 503 at submit** through new shared `UnprocessableException` and `UnavailableException`, mapped in `ProblemDetailsAdvice`. A rejected ref or source is 422 with the `SourceProblem` code; a transient failure is 503.
+- Choices / deviations from the step text:
+  - A local job's payload carries the resolved SHA, so it indexes exactly the commit its key names. A remote job keeps the ref as given, so the clone stays shallow (a SHA would fetch full history, step 3). If the branch moves between submit and run, the revision row is keyed by the commit actually indexed.
+  - **IDs are pre-allocated** (`nextval` on the identity sequences, `INSERT … OVERRIDING SYSTEM VALUE`). Blobs, symbols with their parent links, and chunks with their symbol links all go in JDBC batches: a few round trips per batch, none per row (DB-8).
+  - **A blob is written together with its symbols and chunks, in one transaction.** A stored blob is therefore always complete, which is what makes retries resume safely. Concurrent runs that race on the same blob: `ON CONFLICT DO NOTHING`, and the loser looks up the winner's row.
+  - **Stale chunks are rebuilt.** A reused blob whose chunks came from another chunker version has its symbols and chunks deleted and rebuilt (the step 1 note).
+  - **Validation:** `revision_file` count = files kept, and no non-empty file is without a chunk. That's broader than the step text's "every OK Java blob" (step 6), and an empty file has none. "Every blob has `parse_status`" is already a NOT NULL constraint. A failed check marks the revision FAILED with `index-incomplete`.
+  - **Stats** from the database: `filesKept`, `symbols`, `chunks`, `parseFailures`, `redactions`. They're right however many attempts a run took. `blobsNew` and `blobsReused` describe the last attempt; `encodingFallbacks` was added.
+  - Blobs with no parser get `parser_version = none` and `parse_status = SKIPPED`.
+- Found (not fixed, for later):
+  - **Chunk headers include the file path, but chunks belong to content-addressed blobs.** A file that's moved or copied unchanged reuses the old chunks, header path included. Retrieval (M3) should take the path from `revision_file` for the requested revision and not trust the stored header's path, e.g. by storing headers without the path. To decide in M3, before embeddings are built from headers.
+  - **`file_blob.content_hash`'s comment in V3 says "before redaction"**; the hash is of the redacted content (step 4 row 9), which is right: it's the stored text's identity. The applied migration can't be edited (DB-1); recorded here.
+  - A job that fails on its last attempt leaves its revision INDEXING. Step 8's revision list will show it as such; a cleanup isn't in M2.
+- Tests:
+  - `IndexRevisionJobHandlerTest` (Testcontainers; a fixture repo with 5 kept and 4 excluded files; batches of 2 in the test profile):
+    - commit A → READY with exact stats and the event
+    - redacted content, symbol parent links, `package-info` as a text chunk
+    - re-indexing A → no new rows
+    - commit B changing 1 file → `blobsNew = 1`, `blobsReused = 4`
+    - a syntax error → READY with `parseFailures = 1` and text chunks
+    - a crash after batch 1 → INDEXING with 2 files, then the retry ends with exactly the rows of an uninterrupted run
+    - stale chunks rebuilt, not duplicated
+    - permanent failures for a missing ref and a bad payload
+    - progress per batch
+  - `IndexJobControllerTest`: 202 + Location + QUEUED job; the same job for `main` and its SHA, a new one after the branch moves; 422 `ref-invalid` and `ref-not-found`; 422 `source-location-not-allowed`; 400; 404 for a stranger before any source check.
+  - Authz matrix: a new `OwnerScopedCommand` kind (body, stranger 404, owner past authorization).
+  - `ProblemDetailsTest` for 422 and 503; `resolve` tests for local, remote (`ls-remote`, peeled tag, SHA prefix, nothing left behind) and the service boundary; `IndexRequestTest`.
+- Also: `JobRunnerTest.claimsNothingOfATypeWithoutAHandler` used `INDEX` as its type without a handler; it now uses `ANALYSIS` (handler in M5).
+- DB-6: the new queries are covered by the Testcontainers tests above. Their `EXPLAIN` check moves to step 10, on PetClinic-sized data, where it means something.
+- Verified: `./mvnw clean verify` green (503 tests, 2 symlink tests skipped on Windows; coverage gate met); OpenAPI and frontend types regenerated, `format:check` clean; gitleaks (CI image) over history and `backend/src` clean.
+- Next: step 8 (read APIs: revisions, file tree, source slices, symbol search).

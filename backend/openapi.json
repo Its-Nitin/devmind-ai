@@ -573,6 +573,129 @@
         "summary" : "Get one of your projects",
         "tags" : [ "Projects" ]
       }
+    },
+    "/api/projects/{projectId}/index-jobs" : {
+      "post" : {
+        "description" : "Resolves the ref to a commit and queues an index job for it. Asking again for the same commit returns the same job, so a repeat is a no-op.",
+        "operationId" : "startIndexJob",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/StartIndexRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "202" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/IndexJobResponse"
+                }
+              }
+            },
+            "description" : "Queued, or already queued or done for this commit",
+            "headers" : {
+              "Location" : {
+                "description" : "Path of the job to poll",
+                "schema" : {
+                  "type" : "string",
+                  "format" : "uri-reference"
+                },
+                "style" : "simple"
+              }
+            }
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Invalid request (code: validation-failed lists the fields in errors)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not signed in (code: unauthenticated)"
+          },
+          "403" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "CSRF token missing or invalid (code: invalid-csrf-token)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not found, or not yours (code: <resource>-not-found)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "The ref or source can't be indexed (code: ref-invalid, ref-not-found, ref-ambiguous, source-location-not-allowed, source-location-not-found, source-not-a-repository, source-url-not-allowed)"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Unexpected error (code: internal-error)"
+          },
+          "503" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "The source can't be reached right now; try again (code: source-unreachable, source-timeout)"
+          }
+        },
+        "security" : [ {
+          "csrf" : [ ],
+          "session" : [ ]
+        } ],
+        "summary" : "Index the project at a ref",
+        "tags" : [ "Indexing" ]
+      }
     }
   },
   "components" : {
@@ -608,6 +731,16 @@
           }
         },
         "required" : [ "field", "message" ]
+      },
+      "IndexJobResponse" : {
+        "type" : "object",
+        "properties" : {
+          "jobId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "jobId" ]
       },
       "JobProgressResponse" : {
         "type" : "object",
@@ -777,6 +910,17 @@
           }
         },
         "required" : [ "createdAt", "name", "projectId", "sourceLocation", "sourceType" ]
+      },
+      "StartIndexRequest" : {
+        "type" : "object",
+        "properties" : {
+          "ref" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "ref" ]
       },
       "UserResponse" : {
         "type" : "object",

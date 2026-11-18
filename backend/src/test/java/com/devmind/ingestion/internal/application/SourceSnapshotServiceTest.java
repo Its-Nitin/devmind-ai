@@ -4,6 +4,7 @@ import static com.devmind.support.GitFixture.tree;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.devmind.ingestion.ProjectSource;
+import com.devmind.ingestion.RefResolution;
 import com.devmind.ingestion.SnapshotOutcome;
 import com.devmind.ingestion.SourceProblem;
 import com.devmind.ingestion.SourceSnapshot;
@@ -94,6 +95,18 @@ class SourceSnapshotServiceTest {
         // Then
         assertThat(outcome).isEqualTo(new SnapshotOutcome.Failed(SourceProblem.URL_NOT_ALLOWED));
         assertThat(temp.resolve("clones")).isEmptyDirectory();
+    }
+
+    @Test
+    void resolvesALocalRefOrSaysWhyNot() {
+        assertThat(service.resolve(local(root.resolve("app")), "main"))
+                .isEqualTo(new RefResolution.Resolved(tip.name()));
+        assertThat(service.resolve(local(root.resolve("app")), "main~1"))
+                .isEqualTo(new RefResolution.Failed(SourceProblem.INVALID_REF));
+        assertThat(service.resolve(local(temp.resolve("elsewhere")), "main"))
+                .isEqualTo(new RefResolution.Failed(SourceProblem.LOCATION_NOT_ALLOWED));
+        assertThat(service.resolve(new ProjectSource(SourceType.GIT_PUBLIC, "http://github.com/a/b"), "main"))
+                .isEqualTo(new RefResolution.Failed(SourceProblem.URL_NOT_ALLOWED));
     }
 
     @Test

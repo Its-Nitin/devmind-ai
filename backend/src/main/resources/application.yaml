@@ -28,6 +28,8 @@ devmind:
     retry-max-delay: 10m
     progress-interval: 1s
     shutdown-timeout: 30s
+  indexing: # IndexingProperties
+    batch-size: 500 # files per write batch, one transaction each (DB-8)
   ingestion: # SEC-2/SEC-3 source rules and limits (IngestionProperties); only server config can widen them
     allowed-roots: [] # LOCAL sources are rejected until the operator lists directories; each must exist at startup
     allowed-hosts: [github.com, gitlab.com] # exact host names for GIT_PUBLIC sources

@@ -257,6 +257,26 @@ class LocalSourceTest {
         }
 
         @Test
+        void resolvesRefsWithoutOpeningASnapshot() throws SourceRejection {
+            // Given
+            GitFixture repo = repo(root.resolve("app"));
+            RevCommit first = repo.commit("main", tree().file("a.txt", "1"));
+            RevCommit second = repo.commit("main", tree().file("a.txt", "2"));
+            repo.annotatedTag("v1", first);
+            String location = location(root.resolve("app"));
+
+            // When / Then
+            assertThat(sources.resolveLocal(location, new RefName("main"))).isEqualTo(second.name());
+            assertThat(sources.resolveLocal(location, new RefName("v1"))).isEqualTo(first.name()); // peeled
+            assertThat(sources.resolveLocal(location, new RefName(first.name().substring(0, 7))))
+                    .isEqualTo(first.name());
+            assertRejected(() -> sources.resolveLocal(location, new RefName("develop")), SourceProblem.REF_NOT_FOUND);
+            assertRejected(
+                    () -> sources.resolveLocal(location(outside), new RefName("main")),
+                    SourceProblem.LOCATION_NOT_ALLOWED);
+        }
+
+        @Test
         void closedSnapshotRefusesToStreamAndClosesOnlyOnce() throws SourceRejection {
             // Given
             repo(root.resolve("app")).commit("main", tree().file("a.txt", "1"));

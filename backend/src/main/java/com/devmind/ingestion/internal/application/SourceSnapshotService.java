@@ -1,6 +1,7 @@
 package com.devmind.ingestion.internal.application;
 
 import com.devmind.ingestion.ProjectSource;
+import com.devmind.ingestion.RefResolution;
 import com.devmind.ingestion.SnapshotOutcome;
 import com.devmind.ingestion.SourceProblem;
 import com.devmind.ingestion.SourceSnapshot;
@@ -39,7 +40,21 @@ class SourceSnapshotService implements SourceSnapshotProvider {
             log.debug("Opened {} source at {}: {}", source.type(), snapshot.commitSha(), snapshot.stats());
             return new SnapshotOutcome.Opened(snapshot);
         } catch (SourceRejection rejection) {
-            return failed(source, rejection);
+            return new SnapshotOutcome.Failed(logged(source, rejection));
+        }
+    }
+
+    @Override
+    public RefResolution resolve(ProjectSource source, String ref) {
+        try {
+            RefName name = parse(ref);
+            String commit = switch (source.type()) {
+                case LOCAL -> git.resolveLocal(source.location(), name);
+                case GIT_PUBLIC -> git.resolveRemote(validRemote(source.location()), name);
+            };
+            return new RefResolution.Resolved(commit);
+        } catch (SourceRejection rejection) {
+            return new RefResolution.Failed(logged(source, rejection));
         }
     }
 
@@ -59,14 +74,14 @@ class SourceSnapshotService implements SourceSnapshotProvider {
     }
 
     /** Logs once, here: a fault (with its cause) at WARN, a rejected input at INFO (OBS-2). Never the location. */
-    private static SnapshotOutcome failed(ProjectSource source, SourceRejection rejection) {
+    private static SourceProblem logged(ProjectSource source, SourceRejection rejection) {
         SourceProblem problem = rejection.problem();
         Throwable cause = rejection.getCause();
         if (cause != null) {
-            log.warn("Couldn't open {} source: {}", source.type(), problem.code(), cause);
+            log.warn("Couldn't read {} source: {}", source.type(), problem.code(), cause);
         } else {
             log.info("Rejected {} source: {}", source.type(), problem.code());
         }
-        return new SnapshotOutcome.Failed(problem);
+        return problem;
     }
 }

@@ -141,6 +141,22 @@ class RemoteSourceTest {
     }
 
     @Test
+    void resolvesRefsWithOneLsRemoteAndLeavesNothingBehind() throws Exception {
+        // Given
+        RemoteCloner cloner = cloner(LIMITS);
+
+        // When / Then: a branch, an annotated tag peeled to its commit, and a SHA prefix passed through
+        assertThat(cloner.resolve(originUri(), new RefName("main"))).isEqualTo(second.name());
+        assertThat(cloner.resolve(originUri(), new RefName("v1"))).isEqualTo(first.name());
+        assertThat(cloner.resolve(originUri(), new RefName("abcdef1"))).isEqualTo("abcdef1");
+        assertRejected(() -> cloner.resolve(originUri(), new RefName("develop")), SourceProblem.REF_NOT_FOUND);
+        assertRejected(
+                () -> cloner.resolve(temp.resolve("missing.git").toUri().toString(), new RefName("main")),
+                SourceProblem.LOCATION_NOT_FOUND);
+        assertThat(cloneDirectories()).isEmpty();
+    }
+
+    @Test
     void stopsAtTheCloneTimeout() throws IOException {
         // Given: a deadline that has passed before the clone starts
         SnapshotLimits noTime = new SnapshotLimits(
