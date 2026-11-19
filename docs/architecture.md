@@ -167,7 +167,7 @@ erDiagram
 | `repository_revision` | id, project_id, commit_sha char(40), index_config_hash, status `INDEXING\|READY\|FAILED`, stats jsonb (files, symbols, chunks, edges, resolution_rate, redactions, parse_failures), created_at, ready_at | unique(project_id, commit_sha, index_config_hash) |
 | `file_blob` | id, project_id, content_hash char(64), language, size_bytes, line_count, content text (redacted), parse_status `OK\|PARSE_FAILED\|SKIPPED`, parser_version, redaction_count | unique(project_id, content_hash, parser_version) |
 | `revision_file` | revision_id, path, file_blob_id | pk(revision_id, path); idx(file_blob_id) |
-| `code_symbol` | id, file_blob_id, parent_symbol_id, kind `CLASS\|INTERFACE\|ENUM\|RECORD\|ANNOTATION\|METHOD\|CONSTRUCTOR\|FIELD`, name, qualified_name, signature, **symbol_key** (qualified_name + erased param types), modifiers text[], annotations text[], is_test, start_line, end_line | idx(file_blob_id); idx(symbol_key); gin trgm(name), gin trgm(qualified_name) |
+| `code_symbol` | id, **public_id** uuid (V4, API-5), file_blob_id, parent_symbol_id, kind `CLASS\|INTERFACE\|ENUM\|RECORD\|ANNOTATION\|METHOD\|CONSTRUCTOR\|FIELD`, name, qualified_name, signature, **symbol_key** (qualified_name + erased param types), modifiers text[], annotations text[], is_test, start_line, end_line | idx(file_blob_id); idx(symbol_key); gin trgm(name), gin trgm(qualified_name) |
 | `code_chunk` | id, file_blob_id, symbol_id null, start_line, end_line, content, header, **search_tsv** tsvector, token_estimate, chunker_version | gin(search_tsv); idx(file_blob_id) |
 | `embedding_model` | id, provider, model_name, dimensions, model_digest, created_at | unique(provider, model_name, model_digest) |
 | `chunk_embedding` | chunk_id, embedding_model_id, embedding `vector(1024)`* | pk(chunk_id, embedding_model_id); HNSW (vector_cosine_ops) |
@@ -317,10 +317,11 @@ All under `/api`, JSON, ProblemDetail (RFC 9457) errors, `X-Correlation-Id`. Lis
 | GET/DELETE | `/projects/{projectId}` | delete cascades |
 | POST | `/projects/{projectId}/index-jobs` | `{ref}` → 202 `{jobId}` + `Location: /api/jobs/{jobId}`; the ref is resolved first and the job keyed by commit + index config hash, so the same commit returns the same job (idempotent); 422 for a rejected ref or source, 503 if the source is unreachable |
 | GET | `/jobs/{jobId}` | status, progress, error |
-| GET | `/projects/{projectId}/revisions` | indexed revisions + stats |
-| GET | `/projects/{projectId}/revisions/{sha}/files?path=` | tree listing |
-| GET | `/projects/{projectId}/revisions/{sha}/file?path=&from=&to=` | source slice |
-| GET | `/projects/{projectId}/revisions/{sha}/symbols?q=&kind=` | search |
+| GET | `/projects/{projectId}/revisions` | indexed revisions + stats, newest first, paginated |
+| GET | `/projects/{projectId}/revisions/{sha}/files?path=` | direct children, directories first (at most 1000, then `truncated`) |
+| GET | `/projects/{projectId}/revisions/{sha}/file?path=&from=&to=` | source slice, at most 2000 lines per call (422 `line-range-invalid` past the end) |
+| GET | `/projects/{projectId}/revisions/{sha}/symbols?q=&kind=` | search: exact name or qualified name first, then trigram similarity ≥ 0.4 |
+| GET | `/projects/{projectId}/revisions/{sha}/symbols/{symbolId}` | symbol detail + direct members (`symbolId` = `code_symbol.public_id`) |
 | GET | `/projects/{projectId}/revisions/{sha}/symbols/{symbolId}/neighbors?relation=&direction=&depth=` | graph |
 | POST | `/projects/{projectId}/retrieve` | debug/eval: ranked evidence |
 | POST | `/projects/{projectId}/chat` | `{question, revision, conversationId?}` |

@@ -5,6 +5,7 @@ import com.devmind.indexing.ParseStatus;
 import com.devmind.indexing.ParsedFile;
 import com.devmind.indexing.internal.application.IndexBatch.Blob;
 import com.devmind.indexing.internal.application.IndexBatch.BlobKey;
+import com.devmind.indexing.internal.domain.RevisionStats;
 import com.devmind.indexing.internal.domain.SymbolChunker;
 import com.devmind.indexing.internal.persistence.IndexingRows.ExistingBlob;
 import com.devmind.indexing.internal.persistence.IndexingRows.Revision;
@@ -193,21 +194,20 @@ class IndexRevisionJobHandler implements JobHandler {
      * {@code repository_revision.stats}. Totals come from the database, so they're right however many attempts the
      * run took; {@code blobsNew} and {@code blobsReused} describe the last attempt.
      */
-    private static Map<String, Object> stats(Run run, RevisionTotals totals, Duration duration) {
+    private static RevisionStats stats(Run run, RevisionTotals totals, Duration duration) {
         Map<String, Integer> excluded = new LinkedHashMap<>();
         run.ingestion.excluded().forEach((ExclusionReason reason, Integer count) -> excluded.put(reason.key(), count));
-        Map<String, Object> stats = new LinkedHashMap<>();
-        stats.put("filesKept", totals.files());
-        stats.put("excluded", excluded);
-        stats.put("blobsReused", run.blobsReused);
-        stats.put("blobsNew", run.blobsNew);
-        stats.put("symbols", totals.symbols());
-        stats.put("chunks", totals.chunks());
-        stats.put("parseFailures", totals.parseFailures());
-        stats.put("redactions", totals.redactions());
-        stats.put("encodingFallbacks", run.ingestion.encodingFallbacks());
-        stats.put("durationMs", duration.toMillis());
-        return stats;
+        return new RevisionStats(
+                totals.files(),
+                excluded,
+                run.blobsReused,
+                run.blobsNew,
+                totals.symbols(),
+                totals.chunks(),
+                totals.parseFailures(),
+                totals.redactions(),
+                run.ingestion.encodingFallbacks(),
+                duration.toMillis());
     }
 
     /** Counters of one attempt. */

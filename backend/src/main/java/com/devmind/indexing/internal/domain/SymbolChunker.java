@@ -50,7 +50,7 @@ public final class SymbolChunker {
      * @param parsed the parser's result for Java files; null for files no parser handles
      */
     public static List<Chunk> chunk(String path, String content, @Nullable ParsedFile parsed) {
-        List<String> lines = lines(content);
+        List<String> lines = SourceLines.of(content);
         if (parsed == null
                 || parsed.status() != ParseStatus.OK
                 || parsed.symbols().isEmpty()) {
@@ -91,15 +91,6 @@ public final class SymbolChunker {
                 .filter(part -> !part.isEmpty())
                 .collect(Collectors.joining("\n"));
         return new Chunk(start, end, symbol, header, content, searchText, (content.length() + 3) / 4);
-    }
-
-    /** The file's lines; a final newline doesn't start another line. */
-    private static List<String> lines(String content) {
-        if (content.isEmpty()) {
-            return List.of();
-        }
-        List<String> lines = List.of(content.split("\n", -1));
-        return content.endsWith("\n") ? lines.subList(0, lines.size() - 1) : lines;
     }
 
     private static String slice(List<String> lines, int start, int end) {

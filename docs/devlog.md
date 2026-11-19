@@ -402,3 +402,35 @@
 - DB-6: the new queries are covered by the Testcontainers tests above. Their `EXPLAIN` check moves to step 10, on PetClinic-sized data, where it means something.
 - Verified: `./mvnw clean verify` green (503 tests, 2 symlink tests skipped on Windows; coverage gate met); OpenAPI and frontend types regenerated, `format:check` clean; gitleaks (CI image) over history and `backend/src` clean.
 - Next: step 8 (read APIs: revisions, file tree, source slices, symbol search).
+
+## 2026-11-18 — M2 (session 4): step 8
+- Did: the revision read API, `RevisionController` → `RevisionReadService` → `RevisionQueries`:
+  - `GET …/revisions`: paginated, newest first, every status; `stats` is null until a run finishes.
+  - `GET …/{sha}/files?path=`: direct children, directories first, then by name, case-insensitively.
+  - `GET …/{sha}/file?path=&from=&to=`: a source slice.
+  - `GET …/{sha}/symbols?q=&kind=&page=&size=`: search.
+  - `GET …/{sha}/symbols/{symbolId}`: detail plus direct members.
+
+  Every call checks the project policy first (SEC-1), reads one explicit READY revision through `revision_file` (DB-7), and echoes the full SHA (API-7).
+- Owner decision: **`code_symbol.public_id`** (V4, `gen_random_uuid()` default plus a unique index). Symbols are addressed by UUID like projects and jobs (API-5). Existing rows were filled by the default, so no re-index was needed.
+- Choices / deviations from the step text:
+  - `{sha}`: a full SHA or a ≥ 7-character prefix (`[0-9a-f]{7,40}`, else 400).
+    - A prefix matching several commits → 409 `revision-ambiguous`.
+    - A commit with no READY revision → 409 `revision-not-ready`.
+    - No match → 404 `revision-not-found`.
+    - A commit indexed under several index configs → the most recently READY revision.
+  - **Directory listings are capped at 1000 entries** with a `truncated` flag rather than paginated: the tree loads one directory at a time (step 9), and a directory that big is an outlier. A path that's a file, missing, or malformed (`..`, `//`) → 404 `directory-not-found`; leading and trailing slashes are ignored.
+  - **Source slices:** without `to`, the slice runs to the end or 2000 lines, whichever comes first; a `to` past the end is cut to the end. A start past the end, `to < from`, or a span over 2000 lines → 422 `line-range-invalid`. An empty file reads as `from = to = 0`. Content is as stored, so it's redacted (SEC-5).
+  - **Search:** pg_trgm's `%` operator with `similarity_threshold` set to 0.4 for the read transaction only (`set_config(…, true)`), so the GIN trigram index can serve it. That's instead of `similarity() >= 0.4`, which can't use the index. Exact name or qualified-name matches first, then by similarity, qualified name, path. A blob at two paths gives one hit per path (same `symbolId`).
+  - **Symbol detail:** the first of the blob's paths in the revision; children at the same path. `parentId` is the enclosing type's `symbolId`.
+  - **One stats type:** `RevisionStats` (domain) is what the indexer writes and the API reads; the handler's map became this record.
+  - `SourceLines` is the single definition of lines (the chunker uses it too).
+  - Authz matrix: a new `RevisionScoped` kind. The stranger gets `project-not-found`; the owner gets past the project check, since the matrix indexes nothing.
+- DB-6: the search, directory and totals queries are covered by Testcontainers tests. Their `EXPLAIN` on PetClinic-sized data is in step 10 (noted in step 7 too).
+- Tests: `RevisionControllerTest` over a fixture repo indexed for real:
+  - revisions: list order and stats; prefix plus full-SHA echo; not ready, ambiguous, unknown and malformed SHAs
+  - files: root and subdirectory listings with and without slashes; 404s, including `..` paths
+  - source slices: whole file, range, clamp, the 2000-line cap, bad ranges, empty file, redacted content
+  - symbols: exact-first search with location, typo tolerance, kind filter, qualified name, paging, validation; detail with members and parent; unknown and malformed IDs
+- Verified: `./mvnw clean verify` green (528 tests, 2 symlink tests skipped on Windows; coverage gate met); OpenAPI and frontend types regenerated, `format:check` clean; gitleaks (CI image) over history and `backend/src` clean.
+- Next: step 9 (UI: indexing status, file tree, code viewer, symbol search).

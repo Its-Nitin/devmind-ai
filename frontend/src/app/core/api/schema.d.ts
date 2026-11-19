@@ -151,6 +151,97 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/api/projects/{projectId}/revisions': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List the project's revisions, newest first */
+    get: operations['listRevisions'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/projects/{projectId}/revisions/{sha}/file': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Read lines of a file of a revision
+     * @description At most 2000 lines per call; read longer files in ranges.
+     */
+    get: operations['readFile'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/projects/{projectId}/revisions/{sha}/files': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** List a directory of a revision */
+    get: operations['listFiles'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/projects/{projectId}/revisions/{sha}/symbols': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /**
+     * Search a revision's symbols by name
+     * @description Exact matches of the name or qualified name first, then similar names, most similar first.
+     */
+    get: operations['searchSymbols'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  '/api/projects/{projectId}/revisions/{sha}/symbols/{symbolId}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Get a symbol of a revision, with its direct members */
+    get: operations['getSymbol'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -161,9 +252,33 @@ export interface components {
       /** @enum {string} */
       sourceType: 'LOCAL' | 'GIT_PUBLIC';
     };
+    DirectoryResponse: {
+      commitSha: string;
+      entries: components['schemas']['EntryResponse'][];
+      path: string;
+      truncated: boolean;
+    };
+    EntryResponse: {
+      name: string;
+      path: string;
+      /** @enum {string} */
+      type: 'DIRECTORY' | 'FILE';
+    };
     FieldViolation: {
       field: string;
       message: string;
+    };
+    FileSliceResponse: {
+      commitSha: string;
+      content: string;
+      /** Format: int32 */
+      from: number;
+      language: string;
+      /** Format: int32 */
+      lineCount: number;
+      path: string;
+      /** Format: int32 */
+      to: number;
     };
     IndexJobResponse: {
       /** Format: uuid */
@@ -210,6 +325,10 @@ export interface components {
       content: components['schemas']['ProjectResponse'][];
       page: components['schemas']['PageMetadata'];
     };
+    PagedModelRevisionResponse: {
+      content: components['schemas']['RevisionResponse'][];
+      page: components['schemas']['PageMetadata'];
+    };
     Problem: {
       code: string;
       correlationId?: string | null;
@@ -234,8 +353,70 @@ export interface components {
       /** @enum {string} */
       sourceType: 'LOCAL' | 'GIT_PUBLIC';
     };
+    RevisionResponse: {
+      commitSha: string;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      readyAt?: string | null;
+      stats?: components['schemas']['RevisionStatsResponse'] | null;
+      /** @enum {string} */
+      status: 'INDEXING' | 'READY' | 'FAILED';
+    };
+    RevisionStatsResponse: {
+      /** Format: int32 */
+      blobsNew: number;
+      /** Format: int32 */
+      blobsReused: number;
+      /** Format: int64 */
+      chunks: number;
+      /** Format: int64 */
+      durationMs: number;
+      /** Format: int32 */
+      encodingFallbacks: number;
+      excluded: {
+        [key: string]: number;
+      };
+      /** Format: int64 */
+      filesKept: number;
+      /** Format: int64 */
+      parseFailures: number;
+      /** Format: int64 */
+      redactions: number;
+      /** Format: int64 */
+      symbols: number;
+    };
     StartIndexRequest: {
       ref: string;
+    };
+    SymbolDetailResponse: {
+      annotations: string[];
+      children: components['schemas']['SymbolResponse'][];
+      commitSha: string;
+      modifiers: string[];
+      /** Format: uuid */
+      parentId?: string | null;
+      symbol: components['schemas']['SymbolResponse'];
+      test: boolean;
+    };
+    SymbolResponse: {
+      /** Format: int32 */
+      endLine: number;
+      /** @enum {string} */
+      kind: 'CLASS' | 'INTERFACE' | 'ENUM' | 'RECORD' | 'ANNOTATION' | 'METHOD' | 'CONSTRUCTOR' | 'FIELD';
+      name: string;
+      path: string;
+      qualifiedName: string;
+      signature?: string | null;
+      /** Format: int32 */
+      startLine: number;
+      /** Format: uuid */
+      symbolId: string;
+    };
+    SymbolSearchResponse: {
+      commitSha: string;
+      content: components['schemas']['SymbolResponse'][];
+      page: components['schemas']['PageMetadata'];
     };
     UserResponse: {
       displayName: string;
@@ -800,6 +981,332 @@ export interface operations {
       };
       /** @description The source can't be reached right now; try again (code: source-unreachable, source-timeout) */
       503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  listRevisions: {
+    parameters: {
+      query?: {
+        /** @description Zero-based page index */
+        page?: number;
+        size?: number;
+      };
+      header?: never;
+      path: {
+        projectId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['PagedModelRevisionResponse'];
+        };
+      };
+      /** @description Invalid request (code: validation-failed lists the fields in errors) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not signed in (code: unauthenticated) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not found, or not yours (code: <resource>-not-found) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unexpected error (code: internal-error) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  readFile: {
+    parameters: {
+      query: {
+        /** @description File path, e.g. src/main/java/App.java */
+        path: string;
+        /** @description First line, 1-based; default 1 */
+        from?: number | null;
+        /** @description Last line, inclusive; default the end, within the per-call limit */
+        to?: number | null;
+      };
+      header?: never;
+      path: {
+        projectId: string;
+        sha: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Invalid request (code: validation-failed lists the fields in errors) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not signed in (code: unauthenticated) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not found, or not yours (code: <resource>-not-found) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not READY yet (code: revision-not-ready), or the prefix matches more than one commit (code: revision-ambiguous) */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description The range is past the end, reversed, or too long (code: line-range-invalid) */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unexpected error (code: internal-error) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  listFiles: {
+    parameters: {
+      query?: {
+        /** @description Directory, e.g. src/main; empty for the root */
+        path?: string;
+      };
+      header?: never;
+      path: {
+        projectId: string;
+        /** @description Commit SHA, or a unique prefix of at least 7 characters */
+        sha: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Invalid request (code: validation-failed lists the fields in errors) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not signed in (code: unauthenticated) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not found, or not yours (code: <resource>-not-found) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not READY yet (code: revision-not-ready), or the prefix matches more than one commit (code: revision-ambiguous) */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unexpected error (code: internal-error) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  searchSymbols: {
+    parameters: {
+      query: {
+        /** @description Name or qualified name, e.g. OwnerService */
+        q: string;
+        kind?: 'CLASS' | 'INTERFACE' | 'ENUM' | 'RECORD' | 'ANNOTATION' | 'METHOD' | 'CONSTRUCTOR' | 'FIELD' | null;
+        /** @description Zero-based page index */
+        page?: number;
+        size?: number;
+      };
+      header?: never;
+      path: {
+        projectId: string;
+        sha: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Invalid request (code: validation-failed lists the fields in errors) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not signed in (code: unauthenticated) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not found, or not yours (code: <resource>-not-found) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not READY yet (code: revision-not-ready), or the prefix matches more than one commit (code: revision-ambiguous) */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unexpected error (code: internal-error) */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+    };
+  };
+  getSymbol: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        projectId: string;
+        sha: string;
+        symbolId: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Invalid request (code: validation-failed lists the fields in errors) */
+      400: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not signed in (code: unauthenticated) */
+      401: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not found, or not yours (code: <resource>-not-found) */
+      404: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Not READY yet (code: revision-not-ready), or the prefix matches more than one commit (code: revision-ambiguous) */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/problem+json': components['schemas']['Problem'];
+        };
+      };
+      /** @description Unexpected error (code: internal-error) */
+      500: {
         headers: {
           [name: string]: unknown;
         };

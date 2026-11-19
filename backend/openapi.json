@@ -696,6 +696,517 @@
         "summary" : "Index the project at a ref",
         "tags" : [ "Indexing" ]
       }
+    },
+    "/api/projects/{projectId}/revisions" : {
+      "get" : {
+        "operationId" : "listRevisions",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "Zero-based page index",
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PagedModelRevisionResponse"
+                }
+              }
+            },
+            "description" : "OK"
+          },
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Invalid request (code: validation-failed lists the fields in errors)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not signed in (code: unauthenticated)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not found, or not yours (code: <resource>-not-found)"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Unexpected error (code: internal-error)"
+          }
+        },
+        "security" : [ {
+          "session" : [ ]
+        } ],
+        "summary" : "List the project's revisions, newest first",
+        "tags" : [ "Revisions" ]
+      }
+    },
+    "/api/projects/{projectId}/revisions/{sha}/file" : {
+      "get" : {
+        "description" : "At most 2000 lines per call; read longer files in ranges.",
+        "operationId" : "readFile",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "sha",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "^[0-9a-f]{7,40}$"
+          }
+        }, {
+          "description" : "File path, e.g. src/main/java/App.java",
+          "in" : "query",
+          "name" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          }
+        }, {
+          "description" : "First line, 1-based; default 1",
+          "in" : "query",
+          "name" : "from",
+          "required" : false,
+          "schema" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "minimum" : 1
+          }
+        }, {
+          "description" : "Last line, inclusive; default the end, within the per-call limit",
+          "in" : "query",
+          "name" : "to",
+          "required" : false,
+          "schema" : {
+            "type" : [ "integer", "null" ],
+            "format" : "int32",
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Invalid request (code: validation-failed lists the fields in errors)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not signed in (code: unauthenticated)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not found, or not yours (code: <resource>-not-found)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not READY yet (code: revision-not-ready), or the prefix matches more than one commit (code: revision-ambiguous)"
+          },
+          "422" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "The range is past the end, reversed, or too long (code: line-range-invalid)"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Unexpected error (code: internal-error)"
+          }
+        },
+        "security" : [ {
+          "session" : [ ]
+        } ],
+        "summary" : "Read lines of a file of a revision",
+        "tags" : [ "Revisions" ]
+      }
+    },
+    "/api/projects/{projectId}/revisions/{sha}/files" : {
+      "get" : {
+        "operationId" : "listFiles",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "description" : "Commit SHA, or a unique prefix of at least 7 characters",
+          "in" : "path",
+          "name" : "sha",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "^[0-9a-f]{7,40}$"
+          }
+        }, {
+          "description" : "Directory, e.g. src/main; empty for the root",
+          "in" : "query",
+          "name" : "path",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "default" : "",
+            "maxLength" : 1000,
+            "minLength" : 0
+          }
+        } ],
+        "responses" : {
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Invalid request (code: validation-failed lists the fields in errors)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not signed in (code: unauthenticated)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not found, or not yours (code: <resource>-not-found)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not READY yet (code: revision-not-ready), or the prefix matches more than one commit (code: revision-ambiguous)"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Unexpected error (code: internal-error)"
+          }
+        },
+        "security" : [ {
+          "session" : [ ]
+        } ],
+        "summary" : "List a directory of a revision",
+        "tags" : [ "Revisions" ]
+      }
+    },
+    "/api/projects/{projectId}/revisions/{sha}/symbols" : {
+      "get" : {
+        "description" : "Exact matches of the name or qualified name first, then similar names, most similar first.",
+        "operationId" : "searchSymbols",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "sha",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "^[0-9a-f]{7,40}$"
+          }
+        }, {
+          "description" : "Name or qualified name, e.g. OwnerService",
+          "in" : "query",
+          "name" : "q",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "kind",
+          "required" : false,
+          "schema" : {
+            "type" : [ "string", "null" ],
+            "enum" : [ "CLASS", "INTERFACE", "ENUM", "RECORD", "ANNOTATION", "METHOD", "CONSTRUCTOR", "FIELD" ]
+          }
+        }, {
+          "description" : "Zero-based page index",
+          "in" : "query",
+          "name" : "page",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0,
+            "minimum" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "size",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20,
+            "maximum" : 100,
+            "minimum" : 1
+          }
+        } ],
+        "responses" : {
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Invalid request (code: validation-failed lists the fields in errors)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not signed in (code: unauthenticated)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not found, or not yours (code: <resource>-not-found)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not READY yet (code: revision-not-ready), or the prefix matches more than one commit (code: revision-ambiguous)"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Unexpected error (code: internal-error)"
+          }
+        },
+        "security" : [ {
+          "session" : [ ]
+        } ],
+        "summary" : "Search a revision's symbols by name",
+        "tags" : [ "Revisions" ]
+      }
+    },
+    "/api/projects/{projectId}/revisions/{sha}/symbols/{symbolId}" : {
+      "get" : {
+        "operationId" : "getSymbol",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "projectId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        }, {
+          "in" : "path",
+          "name" : "sha",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "pattern" : "^[0-9a-f]{7,40}$"
+          }
+        }, {
+          "in" : "path",
+          "name" : "symbolId",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        } ],
+        "responses" : {
+          "400" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Invalid request (code: validation-failed lists the fields in errors)"
+          },
+          "401" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not signed in (code: unauthenticated)"
+          },
+          "404" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not found, or not yours (code: <resource>-not-found)"
+          },
+          "409" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Not READY yet (code: revision-not-ready), or the prefix matches more than one commit (code: revision-ambiguous)"
+          },
+          "500" : {
+            "content" : {
+              "application/problem+json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description" : "Unexpected error (code: internal-error)"
+          }
+        },
+        "security" : [ {
+          "session" : [ ]
+        } ],
+        "summary" : "Get a symbol of a revision, with its direct members",
+        "tags" : [ "Revisions" ]
+      }
     }
   },
   "components" : {
@@ -720,6 +1231,43 @@
         },
         "required" : [ "name", "sourceLocation", "sourceType" ]
       },
+      "DirectoryResponse" : {
+        "type" : "object",
+        "properties" : {
+          "commitSha" : {
+            "type" : "string"
+          },
+          "entries" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EntryResponse"
+            }
+          },
+          "path" : {
+            "type" : "string"
+          },
+          "truncated" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "commitSha", "entries", "path", "truncated" ]
+      },
+      "EntryResponse" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "DIRECTORY", "FILE" ]
+          }
+        },
+        "required" : [ "name", "path", "type" ]
+      },
       "FieldViolation" : {
         "type" : "object",
         "properties" : {
@@ -731,6 +1279,36 @@
           }
         },
         "required" : [ "field", "message" ]
+      },
+      "FileSliceResponse" : {
+        "type" : "object",
+        "properties" : {
+          "commitSha" : {
+            "type" : "string"
+          },
+          "content" : {
+            "type" : "string"
+          },
+          "from" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "language" : {
+            "type" : "string"
+          },
+          "lineCount" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "path" : {
+            "type" : "string"
+          },
+          "to" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "required" : [ "commitSha", "content", "from", "language", "lineCount", "path", "to" ]
       },
       "IndexJobResponse" : {
         "type" : "object",
@@ -848,6 +1426,21 @@
         },
         "required" : [ "content", "page" ]
       },
+      "PagedModelRevisionResponse" : {
+        "type" : "object",
+        "properties" : {
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RevisionResponse"
+            }
+          },
+          "page" : {
+            "$ref" : "#/components/schemas/PageMetadata"
+          }
+        },
+        "required" : [ "content", "page" ]
+      },
       "Problem" : {
         "type" : "object",
         "properties" : {
@@ -911,6 +1504,83 @@
         },
         "required" : [ "createdAt", "name", "projectId", "sourceLocation", "sourceType" ]
       },
+      "RevisionResponse" : {
+        "type" : "object",
+        "properties" : {
+          "commitSha" : {
+            "type" : "string"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "readyAt" : {
+            "type" : [ "string", "null" ],
+            "format" : "date-time"
+          },
+          "stats" : {
+            "oneOf" : [ {
+              "$ref" : "#/components/schemas/RevisionStatsResponse"
+            }, {
+              "type" : "null"
+            } ]
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "INDEXING", "READY", "FAILED" ]
+          }
+        },
+        "required" : [ "commitSha", "createdAt", "status" ]
+      },
+      "RevisionStatsResponse" : {
+        "type" : "object",
+        "properties" : {
+          "blobsNew" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "blobsReused" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "chunks" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "durationMs" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "encodingFallbacks" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "excluded" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "integer",
+              "format" : "int32"
+            }
+          },
+          "filesKept" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "parseFailures" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "redactions" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "symbols" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "blobsNew", "blobsReused", "chunks", "durationMs", "encodingFallbacks", "excluded", "filesKept", "parseFailures", "redactions", "symbols" ]
+      },
       "StartIndexRequest" : {
         "type" : "object",
         "properties" : {
@@ -921,6 +1591,95 @@
           }
         },
         "required" : [ "ref" ]
+      },
+      "SymbolDetailResponse" : {
+        "type" : "object",
+        "properties" : {
+          "annotations" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "children" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SymbolResponse"
+            }
+          },
+          "commitSha" : {
+            "type" : "string"
+          },
+          "modifiers" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "parentId" : {
+            "type" : [ "string", "null" ],
+            "format" : "uuid"
+          },
+          "symbol" : {
+            "$ref" : "#/components/schemas/SymbolResponse"
+          },
+          "test" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "annotations", "children", "commitSha", "modifiers", "symbol", "test" ]
+      },
+      "SymbolResponse" : {
+        "type" : "object",
+        "properties" : {
+          "endLine" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "kind" : {
+            "type" : "string",
+            "enum" : [ "CLASS", "INTERFACE", "ENUM", "RECORD", "ANNOTATION", "METHOD", "CONSTRUCTOR", "FIELD" ]
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "path" : {
+            "type" : "string"
+          },
+          "qualifiedName" : {
+            "type" : "string"
+          },
+          "signature" : {
+            "type" : [ "string", "null" ]
+          },
+          "startLine" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "symbolId" : {
+            "type" : "string",
+            "format" : "uuid"
+          }
+        },
+        "required" : [ "endLine", "kind", "name", "path", "qualifiedName", "startLine", "symbolId" ]
+      },
+      "SymbolSearchResponse" : {
+        "type" : "object",
+        "properties" : {
+          "commitSha" : {
+            "type" : "string"
+          },
+          "content" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/SymbolResponse"
+            }
+          },
+          "page" : {
+            "$ref" : "#/components/schemas/PageMetadata"
+          }
+        },
+        "required" : [ "commitSha", "content", "page" ]
       },
       "UserResponse" : {
         "type" : "object",

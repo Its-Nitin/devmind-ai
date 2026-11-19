@@ -67,6 +67,16 @@ class AuthorizationMatrixTest {
      */
     record OwnerScopedCommand(String projectVariable, String body) implements Access {}
 
+    /**
+     * A read of one revision of the owner's project, {@code {projectId}} plus {@code {sha}} (and {@code {symbolId}}).
+     * The matrix indexes nothing, so the owner can't get a 2xx: the check is that the stranger gets {@code
+     * project-not-found} while the owner gets past it (no 401 or 403, and any 404 is about the revision, not the
+     * project).
+     *
+     * @param query required query parameters, so validation doesn't answer first
+     */
+    record RevisionScoped(String query) implements Access {}
+
     record Endpoint(String method, String path) {
 
         @Override
@@ -96,6 +106,17 @@ class AuthorizationMatrixTest {
             entry(
                     new Endpoint("POST", "/api/projects/{projectId}/index-jobs"),
                     new OwnerScopedCommand("projectId", "{\"ref\": \"main\"}")),
+            entry(new Endpoint("GET", "/api/projects/{projectId}/revisions"), PROJECT_OWNER),
+            entry(new Endpoint("GET", "/api/projects/{projectId}/revisions/{sha}/files"), new RevisionScoped("")),
+            entry(
+                    new Endpoint("GET", "/api/projects/{projectId}/revisions/{sha}/file"),
+                    new RevisionScoped("?path=README.md")),
+            entry(
+                    new Endpoint("GET", "/api/projects/{projectId}/revisions/{sha}/symbols"),
+                    new RevisionScoped("?q=Owner")),
+            entry(
+                    new Endpoint("GET", "/api/projects/{projectId}/revisions/{sha}/symbols/{symbolId}"),
+                    new RevisionScoped("")),
             // infrastructure: Spring Boot's error controller, and springdoc, which needs a session (M1 step 8)
             entry(new Endpoint("*", "/error"), AUTHENTICATED),
             entry(new Endpoint("GET", "/v3/api-docs"), AUTHENTICATED),
@@ -236,6 +257,39 @@ class AuthorizationMatrixTest {
                                     .getStatus())
                             .as("%s by the owner gets past authorization", endpoint)
                             .isNotIn(401, 403, 404);
+                }));
+    }
+
+    @TestFactory
+    Stream<DynamicTest> revisionScopedReadsCheckTheProjectBeforeTheRevision() {
+        return endpointsWith(RevisionScoped.class)
+                .map(endpoint -> DynamicTest.dynamicTest(endpoint.toString(), () -> {
+                    // Given
+                    RevisionScoped access = (RevisionScoped) Objects.requireNonNull(MATRIX.get(endpoint));
+                    SignedInUser owner = users.signIn();
+                    SignedInUser stranger = users.signIn();
+                    String path = endpoint.path()
+                                    .replace("{projectId}", createProject(owner))
+                                    .replace("{sha}", "abcdef1")
+                                    .replace("{symbolId}", UUID.randomUUID().toString())
+                            + access.query();
+                    assertThat(path).as("unsupported path variable").doesNotContain("{");
+
+                    // When / Then
+                    assertThat(signedIn(endpoint, path, stranger))
+                            .as("%s by another user", endpoint)
+                            .hasStatus(HttpStatus.NOT_FOUND)
+                            .bodyJson()
+                            .isLenientlyEqualTo("""
+                                    {"code": "project-not-found"}
+                                    """);
+                    MvcTestResult byOwner = signedIn(endpoint, path, owner);
+                    assertThat(byOwner.getResponse().getStatus())
+                            .as("%s by the owner", endpoint)
+                            .isNotIn(401, 403);
+                    assertThat(byOwner.getResponse().getContentAsString())
+                            .as("%s by the owner gets past the project check", endpoint)
+                            .doesNotContain("project-not-found");
                 }));
     }
 
