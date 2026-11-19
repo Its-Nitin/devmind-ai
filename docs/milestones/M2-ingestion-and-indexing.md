@@ -387,13 +387,13 @@ Check `EXPLAIN` once on PetClinic-sized data and note it in the PR (DB-6). Then 
 6. **Lombok / generated-code check:** if PetClinic's controllers implement interfaces generated from an OpenAPI spec, those interfaces live in generated sources, which are excluded by design. Record this in the devlog as a known limitation. It matters again in M5 (unresolved `IMPLEMENTS`) and M8 (mappings may be found via the OpenAPI spec instead).
 
 ### Exit checklist (from PLAN.md M2)
-- [ ] PetClinic indexed at the pinned SHA; the class-name lookup returns the correct file, qualified name, lines and source
-- [ ] Re-indexing the same SHA is a no-op
-- [ ] Indexing a second SHA re-parses only changed blobs (shown in stats)
-- [ ] Path traversal, symlink escape, URL and secret tests pass
-- [ ] Parser and chunker golden tests committed
+- [x] PetClinic indexed at the pinned SHA; the class-name lookup returns the correct file, qualified name, lines and source
+- [x] Re-indexing the same SHA is a no-op
+- [x] Indexing a second SHA re-parses only changed blobs (shown in stats)
+- [x] Path traversal, symlink escape, URL and secret tests pass
+- [x] Parser and chunker golden tests committed
 - [ ] UI: status polling, tree, code viewer with line highlight, symbol search
-- [ ] Authz matrix updated for every new endpoint
+- [x] Authz matrix updated for every new endpoint
 
 ### Wrap-up
 Devlog entry (index stats, surprises), "Current milestone" → M3 in `CLAUDE.md`, then tag `m2`.

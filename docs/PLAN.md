@@ -110,16 +110,16 @@ M0 closed 2026-11-07 (tag `m0`). Results and deviations are in [devlog.md](devlo
 **Exit:** `docker compose up` starts everything, you can log in and create a project, and CI is green with all gates enforcing.
 
 ### M2 — Ingestion & structural index (18–25 h)
-- [ ] Source acquisition: local path (canonicalized, must be under `devmind.ingestion.allowed-roots`) or public HTTPS clone (JGit, depth-limited, no submodules, size/file-count limits). Resolve and pin the commit SHA.
-- [ ] File filter: allow-list of extensions, deny-list of paths (`target/`, `build/`, `node_modules/`, `.git/`, generated sources), binary detection, size cap, secret-file patterns, and symlinks that escape the root.
-- [ ] Normalization: UTF-8 decode (reject or flag otherwise), CRLF→LF, then SHA-256 → `file_blob` (content-addressed per project).
-- [ ] `CodeParser` port + `JavaParserCodeParser`: classes, interfaces, enums, records, methods, constructors, fields; qualified names, signatures, annotations, modifiers, 1-based inclusive line ranges; `is_test` detection.
-- [ ] Symbol-aware chunking (architecture.md §7.1) with a contextual header.
-- [ ] Secret scanning on chunk content: redact before persistence, and count redactions.
-- [ ] DB-backed job queue (`SKIP LOCKED`), idempotent on `(project, commit_sha, index_config_hash)`, with progress reporting.
-- [ ] APIs: start index job (202), job status, list revisions, browse files, file content by line range, symbol search (exact + trigram).
+- [x] Source acquisition: local path (canonicalized, must be under `devmind.ingestion.allowed-roots`) or public HTTPS clone (JGit, depth-limited, no submodules, size/file-count limits). Resolve and pin the commit SHA.
+- [x] File filter: allow-list of extensions, deny-list of paths (`target/`, `build/`, `node_modules/`, `.git/`, generated sources), binary detection, size cap, secret-file patterns, and symlinks that escape the root.
+- [x] Normalization: UTF-8 decode (reject or flag otherwise), CRLF→LF, then SHA-256 → `file_blob` (content-addressed per project).
+- [x] `CodeParser` port + `JavaParserCodeParser`: classes, interfaces, enums, records, methods, constructors, fields; qualified names, signatures, annotations, modifiers, 1-based inclusive line ranges; `is_test` detection.
+- [x] Symbol-aware chunking (architecture.md §7.1) with a contextual header.
+- [x] Secret scanning on chunk content: redact before persistence, and count redactions.
+- [x] DB-backed job queue (`SKIP LOCKED`), idempotent on `(project, commit_sha, index_config_hash)`, with progress reporting.
+- [x] APIs: start index job (202), job status, list revisions, browse files, file content by line range, symbol search (exact + trigram).
 - [ ] UI: project list, indexing status (polling), file tree, symbol list, read-only code viewer with line highlight.
-- [ ] Tests: parser golden tests (fixture Java files → expected symbols JSON), filter tests (including path traversal and symlink escape), and an indexing integration test on a fixture repo.
+- [x] Tests: parser golden tests (fixture Java files → expected symbols JSON), filter tests (including path traversal and symlink escape), and an indexing integration test on a fixture repo.
 
 **Exit:** index PetClinic at a pinned SHA; *"OwnerController" → correct file, qualified name, line range, source*. Re-indexing the same SHA is a no-op. Indexing a second SHA only re-parses changed blobs.
 

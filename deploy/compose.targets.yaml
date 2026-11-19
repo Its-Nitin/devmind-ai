@@ -1,0 +1,15 @@
+# Optional: lets the stack index LOCAL sources from the evaluation targets folder (evaluation/targets.yaml).
+#   docker compose --env-file deploy/.env -f deploy/compose.yaml -f deploy/compose.targets.yaml up --build
+# then create projects with LOCAL paths under /targets, e.g. /targets/spring-petclinic-rest.
+# The host folder defaults to D:/dev/targets; set DEVMIND_TARGETS_DIR in deploy/.env to change it.
+services:
+  backend:
+    environment:
+      DEVMIND_INGESTION_ALLOWEDROOTS: /targets # SEC-2: only this root; the mount is read-only
+    volumes:
+      - type: bind
+        source: ${DEVMIND_TARGETS_DIR:-D:/dev/targets}
+        target: /targets
+        read_only: true
+        bind:
+          create_host_path: false # never create the host folder: an empty root would only hide a wrong path

@@ -464,3 +464,37 @@
 - Verified: frontend lint, `format:check`, tests and build; backend `./mvnw clean verify` green (529 tests); gitleaks over history, `backend/src` and `frontend/src` clean.
 - **Open:** the step's done-when is a browser click-through (index → progress → tree → file → search → lines). The API flow behind it is verified above; the owner still has to click through it. Tick the tracker after that.
 - Next: step 10 (PetClinic end to end, EXPLAIN checks, close M2).
+
+## 2026-11-20 — M2 (session 6): step 10
+- Did: indexed PetClinic end to end through the compose stack, then ran the exit checks.
+  - New `deploy/compose.targets.yaml`, an optional override. It bind-mounts `D:/dev/targets` read-only at `/targets` (override with `DEVMIND_TARGETS_DIR`, `create_host_path: false`) and sets `DEVMIND_INGESTION_ALLOWEDROOTS=/targets`. It's a separate file so `compose.yaml` still starts on a machine without the targets folder. The command is in `CLAUDE.md`.
+  - Rebuilt the stack: it was still on the pre-M2 image.
+- **Pinned SHA `5180cc9`** (project source `/targets/spring-petclinic-rest`): READY in 1537 ms.
+  - 142 files kept; 2 binary and 10 by extension excluded
+  - 792 symbols, 839 chunks, 0 parse failures, 2 redactions, 1 encoding fallback
+  - same counts as the step 9 smoke run through the `local` profile
+- **Re-index, same SHA:** a no-op. Submitting the full SHA and the prefix `5180cc9` both returned the original job (`a70edd5c`, SUCCEEDED). The revision kept its `readyAt`, and the revision, file, blob, symbol, chunk and job row counts didn't change.
+- **Second SHA, the parent `d350090`:** READY in 332 ms; `blobsReused` 133, `blobsNew` 9. `git diff --stat d350090 5180cc9` lists exactly 9 changed files. The 9 new blobs added 117 symbols and 154 chunks; nothing else was re-parsed.
+- **Milestone lookup:** `OwnerRestController` → `OwnerRestControllerV1` (CLASS) first, then V2. Its qualified name is `org.springframework.samples.petclinic.rest.controller.v1.OwnerRestControllerV1`, file `src/main/java/.../rest/controller/v1/OwnerRestControllerV1.java`, lines 51–203.
+  - Checked against `git show 5180cc9:<path>`: line 51 is `@RestController` (the first annotation), and 203 is the closing `}` and the file's last line. The slice API returns the same lines with `lineCount` 203.
+  - The class Javadoc (47–49) sits outside the range because a blank line separates it, as the golden tests expect.
+- **Spot check, 5 symbols picked by `md5(qualified_name)`:** all 5 ranges are exact against the git text, each from the first annotation or declaration line to the closing `}` or `;`.
+  - `OwnerRestControllerV1Tests#testGetOwnerPetSuccess` 559–571
+  - `BaseEntity#id` 33–35
+  - `OwnerRestControllerV1Tests#testUpdateOwnerError` 306–316
+  - `UserRepository#save` 8
+  - `Role` 12–39
+- **Known limitation: generated code (step 10.6).** The controllers implement `OwnersApi` and the other `*Api` interfaces. openapi-generator writes those into `target/` from `src/main/resources/openapi.yml`; they're not in git and aren't indexed (0 `*Api.java` at the SHA, and an INTERFACE search for `OwnersApi` finds nothing). `OwnerRestControllerV1` carries only `@RequestMapping("/api")`, because the per-endpoint mappings are in the generated interface. M5 will see unresolved `IMPLEMENTS` edges. M8 has to take mappings from the OpenAPI spec (already noted in `evaluation/targets.yaml`).
+- **DB-6, `EXPLAIN (ANALYZE)` on PetClinic data** (1701 symbols, 426 revision files, 2 revisions):
+  - symbol search + count: 3.5 ms / 4.0 ms
+  - directory listing, root and deep: 0.3 ms / 0.2 ms
+  - revision totals: 0.7 ms
+  - All use seq scans at this size. The totals subqueries already use index-only scans on `code_chunk_blob_idx` and `code_symbol_blob_idx`.
+  - With seq scans off, the indexes are usable: `revision_file_pkey` (revision, path) for the revision filter and the path prefix. The search predicate becomes a BitmapOr over `code_symbol_name_trgm` (`=` and `%`) and `code_symbol_qname_trgm` (`=`); pg_trgm 1.6 supports `=` in GIN. Revisit at the M3 dataset size.
+- **What fought me: two job workers on one database.** The `local` backend from session 5 was still running against the compose database. It claimed the first INDEX jobs and rejected `/targets/...` (`source-location-not-allowed`), since its only root is `D:/dev/targets`. The container had resolved the ref fine at submit time. That's correct SEC-2 behaviour, but which instance runs a job decides whether it's allowed. Same single-instance assumption as the clone directory. Noted in `CLAUDE.md`; no code change in M2. If several instances ever share a database, roots need to agree, or jobs need routing.
+- Exit checklist: everything is ticked except the UI line.
+  - Symlink-escape tests: skipped on Windows, but CI on `main` (`aeacdd6`, ubuntu) ran all 529 tests with 0 skipped.
+  - Authz matrix: step 8.
+  - The UI line is still open. It needs the owner's browser click-through from step 9 (index → progress → tree → file → search → lines). The data for it is in the compose stack now: project "spring-petclinic-rest (compose)" at http://localhost:8088.
+- Not changed: no Java or frontend code this step, so no `./mvnw verify` rerun. The last green run was step 9's.
+- Next: owner click-through; then "Current milestone" → M3 in `CLAUDE.md` and tag `m2`.

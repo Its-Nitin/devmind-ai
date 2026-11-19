@@ -39,6 +39,7 @@ Run locally (dev, live reload):
 - Frontend: `cd frontend && npm start`, then http://localhost:4200 (proxies `/api` to :8080). Log in as `demo@devmind.local`.
 
 Whole stack (demo): `cp deploy/.env.example deploy/.env`, set both passwords, then `docker compose --env-file deploy/.env -f deploy/compose.yaml up --build` and open http://localhost:8088. Changing `DB_PASSWORD` later needs `down -v` (wipes data).
+To index the local evaluation targets from the stack, add `-f deploy/compose.targets.yaml`: it mounts `D:/dev/targets` read-only at `/targets` (LOCAL paths are then `/targets/...`). Don't run the `local` backend against the compose DB at the same time: both claim jobs, and each allows only its own roots.
 
 Eval: not yet; the benchmark runner arrives with the eval milestones (PLAN.md).
 
