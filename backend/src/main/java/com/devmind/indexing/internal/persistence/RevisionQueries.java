@@ -70,7 +70,8 @@ public class RevisionQueries {
 
     /**
      * Symbols whose name or qualified name is {@code q}, then names similar to it by trigram (pg_trgm's {@code %},
-     * which uses the threshold {@link #useSimilarityThreshold} sets). Exact matches first, then by similarity.
+     * which uses the threshold {@link #useSimilarityThreshold} sets). Exact matches first, then by similarity;
+     * ties put main code before test code and types before members, so a class outranks a test field named after it.
      */
     private static final String SEARCH_WHERE = """
               FROM revision_file rf
@@ -83,8 +84,9 @@ public class RevisionQueries {
             SELECT s.public_id, s.kind, s.name, s.qualified_name, s.signature, rf.path, s.start_line, s.end_line
             """ + SEARCH_WHERE + """
 
-             ORDER BY (s.name = :q OR s.qualified_name = :q) DESC, similarity(s.name, :q) DESC, s.qualified_name,
-                      rf.path, s.start_line
+             ORDER BY (s.name = :q OR s.qualified_name = :q) DESC, similarity(s.name, :q) DESC,
+                      s.is_test, s.kind NOT IN ('CLASS', 'INTERFACE', 'ENUM', 'RECORD', 'ANNOTATION'),
+                      s.qualified_name, rf.path, s.start_line
              LIMIT :limit OFFSET :offset""";
 
     private static final String COUNT_SYMBOLS = "SELECT count(*)" + SEARCH_WHERE;

@@ -13,7 +13,9 @@
   <tbody>
     @for (project of projects(); track project.projectId) {
       <tr>
-        <th scope="row">{{ project.name }}</th>
+        <th scope="row">
+          <a [routerLink]="['/projects', project.projectId]">{{ project.name }}</a>
+        </th>
         <td>{{ sourceLabels[project.sourceType] }}</td>
         <td class="location">{{ project.sourceLocation }}</td>
         <td>

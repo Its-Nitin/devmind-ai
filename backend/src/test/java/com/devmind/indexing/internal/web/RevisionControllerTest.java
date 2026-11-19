@@ -105,7 +105,15 @@ class RevisionControllerTest {
                                 "src/main/resources/application.yml",
                                 "spring:\n  datasource:\n    password: s3cr3tvalue\n")
                         .file("docs/big.md", lines(2500))
-                        .file("docs/empty.md", ""));
+                        .file("docs/empty.md", "")
+                        // a test field named like the class, in a package that sorts first
+                        .file("src/test/java/com/acme/aaa/OwnerServiceTests.java", """
+                                package com.acme.aaa;
+
+                                class OwnerServiceTests {
+                                    com.acme.OwnerService ownerService;
+                                }
+                                """));
         project = createProject(temp.resolve("app").toString());
         projectId = accessPolicy.requireOwner(owner.id(), new ProjectId(UUID.fromString(project)));
         IndexFixtures.index(context, projectId, temp.resolve("app"), commit.name());
@@ -134,7 +142,7 @@ class RevisionControllerTest {
             assertThat(page.at("/content/0/stats").isNull()).isTrue();
             assertThat(page.at("/content/1/commitSha").asString()).isEqualTo(commit.name());
             assertThat(page.at("/content/1/status").asString()).isEqualTo("READY");
-            assertThat(page.at("/content/1/stats/filesKept").asInt()).isEqualTo(6);
+            assertThat(page.at("/content/1/stats/filesKept").asInt()).isEqualTo(7);
             assertThat(page.at("/content/1/stats/redactions").asInt()).isEqualTo(1);
             assertThat(page.at("/page/totalElements").asInt()).isEqualTo(2);
         }
@@ -273,6 +281,14 @@ class RevisionControllerTest {
         @Test
         void findsSimilarNamesDespiteATypo() {
             assertThat(names(body(get(revision() + "/symbols?q=OwnerServise")))).contains("CLASS OwnerService");
+        }
+
+        @Test
+        void ranksMainCodeAndTypesFirstAmongEquallySimilarNames() {
+            // Given: the class OwnerService and the test field ownerService are equally similar to a typo
+            // When / Then: the class comes first, though the field's qualified name sorts first
+            assertThat(names(body(get(revision() + "/symbols?q=OwnerServise"))))
+                    .containsSubsequence("CLASS OwnerService", "FIELD ownerService");
         }
 
         @Test

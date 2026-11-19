@@ -434,3 +434,33 @@
   - symbols: exact-first search with location, typo tolerance, kind filter, qualified name, paging, validation; detail with members and parent; unknown and malformed IDs
 - Verified: `./mvnw clean verify` green (528 tests, 2 symlink tests skipped on Windows; coverage gate met); OpenAPI and frontend types regenerated, `format:check` clean; gitleaks (CI image) over history and `backend/src` clean.
 - Next: step 9 (UI: indexing status, file tree, code viewer, symbol search).
+
+## 2026-11-19 — M2 (session 5): step 9
+- Did: `features/explorer` (lazy, under `/projects/:projectId`) and `shared/code-viewer`.
+  - **Project page:** source, a revisions table (status tag in words, short SHA linking to the explorer, stats), and an "Index" dialog for a ref. Job progress shows the phase, `done / total`, a bar, and failures in words per `errorCode`. When a job succeeds, the revision list reloads.
+  - **Explorer page** (`/projects/:projectId/revisions/:sha`): symbol search and a lazy PrimeNG tree on the left, the code viewer on the right, and breadcrumbs.
+  - **`CodeViewer`** (CodeMirror 6): read-only, Java highlighting, line numbers offset by `firstLine`, a line-range highlight decoration, scrolls to it. Content goes in as editor text only (SEC-9, FE-12).
+  - **`ExplorerApi`** (FE-8): `pollJob` = `timer(0, 1500)` + `switchMap` + inclusive `takeWhile`. `ProjectStore` and `ExplorerStore` hold signals (FE-3).
+  - The project list's names now link to the project page. New dependencies: `@codemirror/state`, `view`, `language` and `lang-java` (latest, each released over two weeks earlier).
+- Choices / deviations from the step text:
+  - **The URL is the state of the open file.** Tree clicks, symbol clicks and deep links (`?path=&from=&to=`) all navigate, and one effect shows what the URL names, so M4's citation chips only need to build that URL. Route and query params bind to inputs (`withComponentInputBinding`; `paramsInheritanceStrategy: 'always'` so child pages get `:projectId`).
+  - **Long files:** a link past line 2000 reads from 100 lines above the range, and the viewer numbers lines from the slice's start.
+  - **Both pages live in one feature, `explorer`:** FE-5 forbids features importing each other, and the project page and explorer share the API.
+  - **States (FE-10):** loading, empty ("No files", "Nothing indexed yet"), error with retry, and the revision states not-ready, ambiguous and not-found. The 404 and 409 from revision reads are handled locally, not toasted (`LOCALLY_HANDLED_STATUSES`).
+  - Stale responses are dropped: a slower file or search answer can't overwrite a newer one.
+  - A CSS-grid split instead of PrimeNG Splitter, for a fixed, simple layout. Resizing can come later.
+- Found and fixed on real data:
+  - **Search ranking.** PetClinic's controller is `OwnerRestControllerV1`, so `OwnerRestController` only matches fuzzily, and with ties ordered by qualified name, a test field ranked above the class.
+  - Ties now order main code before test code, then types before members (`RevisionQueries`, step 8's query).
+  - `RevisionControllerTest.ranksMainCodeAndTypesFirstAmongEquallySimilarNames` checks it; I confirmed it fails without the tiebreak.
+- Smoke run on the dev stack (compose DB, `local` backend, `ng serve` proxy), as the demo user, PetClinic at the pinned SHA `5180cc9`:
+  - create the project → `POST index-jobs` (202) → poll → SUCCEEDED in about 1 s
+  - stats: 142 files kept; 2 binary and 10 by extension excluded; 792 symbols, 839 chunks, 0 parse failures, 2 redactions, 1 encoding fallback
+  - tree, source slice and symbol search all answer as the UI uses them
+  - the SPA serves deep-link URLs
+  - The project stays in the local DB for the browser check.
+- Pre-existing: the initial bundle is over its 500 kB *warning* budget (637 kB on `main` before this step; 665 kB now, the extra mostly router input binding). The error budget is 1 MB. CodeMirror and the tree are in the lazy `explorer-routes` chunk (463 kB). Trimming the initial bundle (PrimeNG theme, toast) is a separate task.
+- Tests: `explorer-api.spec` (polling stops after SUCCEEDED, FAILED and CANCELLED, emits the terminal state last, and stops on a failed poll), `explorer-store.spec` (deep-link parsing; revision states from 404/409 codes; lazy expand once; deep link → read start, `firstLine`, highlight; out-of-order answers; search), `symbol-search.spec` (300 ms debounce, trim, no repeats), `project-store.spec` (index → poll → revisions reload; rejected ref), `code-viewer.spec` (text not markup, read-only, offset numbers, highlighted lines). 45 frontend tests.
+- Verified: frontend lint, `format:check`, tests and build; backend `./mvnw clean verify` green (529 tests); gitleaks over history, `backend/src` and `frontend/src` clean.
+- **Open:** the step's done-when is a browser click-through (index → progress → tree → file → search → lines). The API flow behind it is verified above; the owner still has to click through it. Tick the tracker after that.
+- Next: step 10 (PetClinic end to end, EXPLAIN checks, close M2).

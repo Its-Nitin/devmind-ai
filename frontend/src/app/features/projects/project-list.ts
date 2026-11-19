@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
 import { Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Project, SourceType } from './projects-api';
 
 /** Presentational table of projects: inputs only, no services (FE-6). Content renders as text (SEC-9). */
 @Component({
   selector: 'dm-project-list',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   templateUrl: './project-list.html',
   styleUrl: './project-list.scss',
 })

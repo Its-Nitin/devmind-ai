@@ -13,6 +13,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadChildren: () => import('./features/projects/projects.routes').then((m) => m.projectsRoutes),
   },
+  {
+    path: 'projects/:projectId',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/explorer/explorer.routes').then((m) => m.explorerRoutes),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'projects' },
   { path: '**', redirectTo: 'projects' },
 ];

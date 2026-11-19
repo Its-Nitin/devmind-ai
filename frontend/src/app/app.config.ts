@@ -1,6 +1,6 @@
 import { provideHttpClient, withInterceptors, withXsrfConfiguration } from '@angular/common/http';
 import { ApplicationConfig, inject, provideAppInitializer, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import Aura from '@primeuix/themes/aura';
 import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
@@ -13,7 +13,8 @@ import { errorInterceptor } from './core/http/error-interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes),
+    // Route and query parameters bind to component inputs; child routes see their parents' (e.g. :projectId).
+    provideRouter(routes, withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always' })),
     // The backend's CookieCsrfTokenRepository names (SEC-7); Angular sends the header on mutating relative requests.
     provideHttpClient(
       withInterceptors([correlationIdInterceptor, errorInterceptor]),
