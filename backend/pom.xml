@@ -27,7 +27,7 @@
 
     <!-- Quality gates (coding-standards: JAVA-1/2/5/13/14, GEN-4/5, TEST-8) -->
     <error-prone.version>2.52.0</error-prone.version>
-    <nullaway.version>0.14.3</nullaway.version>
+    <nullaway.version>0.14.4</nullaway.version>
     <spotless.version>3.11.0</spotless.version>
     <palantir-java-format.version>2.103.0</palantir-java-format.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
