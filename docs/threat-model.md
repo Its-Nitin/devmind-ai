@@ -56,13 +56,14 @@ flowchart LR
 | T14 | **Git-config-driven execution:** a malicious repo's `.gitattributes` filters (smudge/clean), hooks or `core.fsmonitor` run commands at checkout | E | remote/local ingestion | JGit in-process only (no CLI `git`); never run hooks; read blobs from the object DB rather than doing a working-tree checkout with filters; remote clones are bare; JGit never looks up the host's system Git config, which on POSIX makes it run `git` | SEC-4, SEC-3 | `LocalSourceTest.neverRunsTheRepositorysFiltersOrHooks`: smudge/clean filter, `core.fsmonitor` and hooks configured → raw blobs, nothing executed, nothing checked out (M2) |
 | T15 | **Operator-side code execution during evaluation:** M5 mutation runs execute the target repo's Maven build and tests, which is arbitrary code | E | eval harness (operator machine) | run only on pinned, reviewed SHAs from `evaluation/targets.yaml`; never as part of the server; never on user-submitted repos | — (ADR-0011) | documented procedure; harness refuses targets not in `targets.yaml` (M5) |
 | T16 | **Stale-revision answers:** an answer mixes evidence from different commits, so the cited code doesn't match the revision the user asked about | T | retrieval | every code read is revision-scoped; responses echo the revision | DB-7, API-7 | retrieval integration test with two revisions (M3) |
+| T17 | **Model endpoint or model swap:** the embedding base URL points somewhere unintended, or a re-pulled tag puts different weights behind the same model name, so stored and query vectors stop being comparable and retrieval quietly degrades | T, I | API → Ollama (B4) | base URL only from server config (absolute `http`/`https`, no user info, query or fragment; never from a request); no redirects followed; the model's digest is read from Ollama and is part of the model's identity; vector length checked against the schema at startup and on every response; connect and read timeouts | SEC-3, SPRING-6, ERR-6, DB-10 | `OllamaEmbeddingAdapterTest`, `EmbeddingPropertiesTest` (M3) |
 
 Considered and closed by design: cross-tenant leakage through shared content-addressed blobs. Dedup is per project, not global ([ADR-0003](adr/0003-content-addressed-storage.md), option C rejected).
 
 ## 5. Assumptions
 - v1 indexes only public repositories or local repositories owned by the operator.
 - Single operator-managed deployment; no public sign-up.
-- Ollama listens on localhost only and isn't exposed by Docker port mappings.
+- Ollama listens on localhost only and isn't exposed by Docker port mappings. The compose backend reaches the host's Ollama through `host.docker.internal`; nothing publishes Ollama's port.
 
 ## 6. Out of scope (v1)
 Private repos and credentials, multi-tenant SaaS, executing target-repo code inside DevMind (the operator's eval mutation runs are covered by T15, outside the server).

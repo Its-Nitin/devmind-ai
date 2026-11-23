@@ -28,6 +28,9 @@ services:
       SPRING_DATASOURCE_USERNAME: devmind
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deploy/.env}
       DEVMIND_SEED_PASSWORD: ${DEVMIND_SEED_PASSWORD:?set DEVMIND_SEED_PASSWORD in deploy/.env}
+      DEVMIND_AI_EMBEDDING_BASEURL: http://host.docker.internal:11434 # the host's Ollama; nothing publishes it
+    extra_hosts:
+      - 'host.docker.internal:host-gateway' # Docker Desktop defines it already; Linux needs this line
     depends_on:
       db:
         condition: service_healthy

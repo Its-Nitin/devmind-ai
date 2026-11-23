@@ -57,7 +57,7 @@ Internals:
 
    Both adapters can use Spring AI clients or a `RestClient`, as long as it's confined to `ai.internal` (ARCH-8). Explicit timeouts (SPRING-6).
 4. **Retries:** at most 1 retry on connect error, timeout or 5xx, with backoff. Never retry on 4xx (ERR-3).
-5. **`llm_call` audit** (`V5__llm_call.sql`):
+5. **`llm_call` audit** (`V7__llm_call.sql`):
    ```sql
    CREATE TABLE llm_call (
      id             bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -192,7 +192,7 @@ Tests: the gate's boolean logic; no `ChatModelPort` invocation when gated (verif
 
 ## Step 6 — `QaService`, conversations, chat endpoint (2–3 h)
 
-1. **`V6__conversation.sql`:**
+1. **`V8__conversation.sql`:**
    ```sql
    CREATE TABLE conversation (
      id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

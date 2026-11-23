@@ -9,11 +9,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-/** Full application context on Testcontainers Postgres + pgvector, {@code test} profile (TEST-2, TEST-4). */
+/**
+ * Full application context on Testcontainers Postgres + pgvector, {@code test} profile (TEST-2, TEST-4), with the
+ * deterministic {@link FakeEmbedding} as the embedding port (AI-11).
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @SpringBootTest
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FakeEmbeddingConfiguration.class})
 @ActiveProfiles("test")
 public @interface IntegrationTest {}

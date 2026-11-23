@@ -6,7 +6,7 @@ Read these before writing code. They're binding and win over general habits:
 3. [docs/architecture.md](docs/architecture.md) and [docs/adr/](docs/adr/README.md): design. Don't contradict an accepted ADR. Propose a new ADR instead.
 
 ## Current milestone
-M2 (ingestion and structural index). M1 closed 2026-11-15 (tag `m1`), M0 on 2026-11-07 (tag `m0`). Update this line when a milestone tag is created.
+M3 (retrieval and evaluation harness). M2 closed 2026-11-20 (tag `m2`), M1 on 2026-11-15 (tag `m1`), M0 on 2026-11-07 (tag `m0`). Update this line when a milestone tag is created.
 
 ## Non-negotiables (summary; details in coding-standards.md)
 - Deterministic code computes facts; LLM output is untrusted until validated (GEN-1, AI-3).

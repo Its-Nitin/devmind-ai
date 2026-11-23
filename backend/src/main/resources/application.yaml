@@ -18,6 +18,17 @@ spring:
       enabled: false # no uploads in v1
 
 devmind:
+  ai:
+    embedding: # ADR-0006 M0 decision (EmbeddingProperties); the model's digest is read from Ollama at startup
+      provider: ollama
+      base-url: http://localhost:11434 # server config only, never from a request
+      model: mxbai-embed-large
+      dimensions: 1024 # fixed by the chunk_embedding column; a model of another size is refused at startup
+      document-prefix: ""
+      query-prefix: "Represent this sentence for searching relevant passages: "
+      batch-size: 16
+      connect-timeout: 5s
+      read-timeout: 2m # one batch on CPU: ~1.6 s per text measured in M0
   job: # ADR-0009 worker and retry tuning (JobProperties)
     worker-enabled: true
     poll-interval: 1s

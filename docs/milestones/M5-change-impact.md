@@ -32,7 +32,7 @@
 
 ## Step 1 — Edges with SymbolSolver (4–5 h) · `indexing`
 
-### 1.1 Schema · `V7__symbol_edge.sql`
+### 1.1 Schema · `V9__symbol_edge.sql`
 ```sql
 CREATE TABLE symbol_edge (
   id               bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -265,7 +265,7 @@ Each finding has `basis = VERIFIED`, `confidence = HIGH`, evidence = the relevan
 
 ## Step 9 — Analysis schema, job, endpoints (2 h)
 
-**`V8__analysis.sql`:**
+**`V10__analysis.sql`:**
 ```sql
 CREATE TABLE analysis_run (
   id                bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

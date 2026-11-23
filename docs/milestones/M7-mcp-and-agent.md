@@ -66,7 +66,7 @@ Tests: per tool, valid args → expected shape; invalid args → `INVALID_ARGUME
 
 **Done when:** all seven tools are tested in isolation.
 
-## Step 3 — Tool-call audit (45 min) · `V9__tool_call.sql`
+## Step 3 — Tool-call audit (45 min) · `V11__tool_call.sql`
 
 ```sql
 CREATE TABLE tool_call (

@@ -5,6 +5,9 @@ logging:
     com.devmind: DEBUG
 
 devmind:
+  ai:
+    embedding:
+      provider: fake # FakeEmbeddingConfiguration (test sources) supplies the port; no model calls in tests (AI-11)
   job:
     # Tests drive JobRunner directly, or start the worker themselves (JobWorkerTest), so nothing polls in the
     # background of unrelated tests.

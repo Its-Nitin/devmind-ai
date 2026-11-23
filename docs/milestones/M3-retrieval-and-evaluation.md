@@ -54,7 +54,7 @@ Tests:
 
 ## Step 2 — Embedding schema + indexing phase (2–3 h)
 
-`V3__embeddings.sql` (dimension 1024 = `mxbai-embed-large`, locked in M0, see ADR-0006):
+`V5__embeddings.sql` (dimension 1024 = `mxbai-embed-large`, locked in M0, see ADR-0006):
 ```sql
 CREATE TABLE embedding_model (
   id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -218,7 +218,7 @@ devmind.retrieval:
    - **Header:** DevMind git SHA (`git rev-parse HEAD`, read at runtime or injected via build-info), dataset path + hash, split, target SHA, `index_config_hash`, embedding model + digest, full `RetrievalConfig`.
    - **Per question:** expected items, top-10 retrieved items with per-retriever ranks, hit rank, pass/fail.
    - **Summary table** in the Markdown.
-6. Insert an `evaluation_run` row (`V4__evaluation_run.sql`: `id, dataset, dataset_hash, mode, config_name, config jsonb, metrics jsonb, report_path, created_at`). It's used by the UI's "latest results" in M6.
+6. Insert an `evaluation_run` row (`V6__evaluation_run.sql`: `id, dataset, dataset_hash, mode, config_name, config jsonb, metrics jsonb, report_path, created_at`). It's used by the UI's "latest results" in M6.
 7. **Tests:** matcher cases; metric math on a synthetic run; the report header has all reproducibility fields; the runner bean is **absent** outside the `eval` profile (TEST-11).
 
 **Done when:** one run produces both report files with a complete header.
