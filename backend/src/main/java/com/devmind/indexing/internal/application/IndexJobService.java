@@ -49,7 +49,8 @@ public class IndexJobService {
      * @throws com.devmind.shared.NotFoundException ({@code project-not-found}) if {@code user} doesn't own the
      *     project; checked before anything else, so nothing about the source leaks (SEC-1, API-8)
      * @throws UnprocessableException if the ref or source is rejected, with the {@link SourceProblem} code
-     * @throws UnavailableException if the source can't be reached right now
+     * @throws UnavailableException if the source, or the embedding model the job is keyed by, can't be reached right
+     *     now
      */
     public JobRef submit(UserId user, ProjectId projectId, String ref) {
         long internalId = accessPolicy.requireOwner(user, projectId);

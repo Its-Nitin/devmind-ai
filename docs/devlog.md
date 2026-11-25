@@ -525,3 +525,33 @@
 - **Not verified yet:** the step's done-when, the app starting against local Ollama with the guard passing. Outside the app, Ollama answers with digest `4688361…83dd8` (matches ADR-0006) and 1024-length vectors.
 - **Open question (AI-2):** "every model call goes through the ports and writes an `llm_call` row." Embedding calls are model calls, but `llm_call` arrives in M4 (`V7`), and its `prompt_id`/`prompt_version` columns don't fit embeddings. Re-indexing PetClinic is ~60 batches. Proposal: embeddings report through metrics plus the revision stats (`embeddingsNew`, `embeddingMs`, step 2) and don't write `llm_call` rows. Then amend AI-2 to cover chat calls only. Owner to decide before M4 step 1.
 - Next: owner runs the checks above. Then step 2: `V5__embeddings.sql` and the embedding phase in indexing.
+
+## 2026-11-23 — M3 (session 2): step 2, embeddings in indexing
+- Step 1 is committed (`c48ae60`) and ticked in the M3 tracker.
+- Did:
+  - `V5__embeddings.sql`: `embedding_model` (unique provider, name and digest) and `chunk_embedding` (`vector(1024)`, PK chunk + model, model FK index, HNSW `vector_cosine_ops`). Both cascade from the chunk, so deleting a project removes its vectors (`SchemaTest`).
+  - The embedding phase in the INDEX handler runs after the file batches and before validation:
+    - it pages through the revision's chunks that have no vector for the active model (keyset on chunk ID);
+    - it embeds `header + "\n" + content` outside any transaction, then inserts the page in one short transaction (SPRING-2);
+    - it reports progress phase `embedding` and heartbeats after every page.
+  - Validation now also fails the revision if any of its chunks has no vector for the model.
+  - Stats: a new `embeddings` block, `{model, embeddingsNew, embeddingsReused, embeddingMs}`. It's nullable, so stats that M2 runs stored still read (`RevisionStatsTest`). The revision API response is unchanged, so neither `openapi.json` nor the frontend types change.
+- Choices / deviations from the step text:
+  - **The config hash has the model's `provider/name@digest`, not its row ID.** That's the same identity as the row's unique key, and it doesn't change from one database to another. M2 revisions hashed `none`, so re-indexing a commit creates a new revision. That revision reuses every blob, symbol and chunk and embeds them all.
+  - **The model row is registered on first use, not at startup** (`ActiveEmbeddingModel`). This matches step 1: the app starts without Ollama. While the server is down:
+    - submitting an index job returns 503 (`embedding-unavailable`), because the job key needs the model;
+    - a running job returns a retryable failure and resumes from the vectors it already stored (ERR-3).
+    - A model whose dimension isn't 1024 is refused before anything is written.
+  - **`embedding-batch-size: 64`, below DB-8's 500 rows.** On CPU 500 chunks take ~13 min, longer than the 5 min job lease, and a crash would lose all of that work. 64 chunks take ~100 s.
+  - Vector inserts use `ON CONFLICT DO NOTHING` through an `INSERT … SELECT` on the chunk. A concurrent run, or a chunk rebuilt in the meantime, doesn't fail the batch.
+- Tests (fake embedding, Testcontainers):
+  - every chunk is embedded, and the stored vector is the fake's for header + content;
+  - a commit that changes one file embeds only the new blob's chunks; re-indexing a READY revision embeds nothing;
+  - the same model name with another digest gives a second READY revision that reuses blobs and chunks, with new vectors, and the old vectors stay;
+  - the model failing on the second page gives a retryable outcome with the first page kept, and the retry embeds only the rest;
+  - a server that's down at the start creates no revision;
+  - a 768-d model is refused;
+  - the existing crash/resume test also compares vectors;
+  - schema: the dimension check, one vector per chunk and model, and the model's unique key.
+- **Owner to run (the done-when):** re-index PetClinic against local Ollama, then record the stats here. See the hand-off message for the commands and SQL: stats, the EXPLAIN of the unembedded-chunks query (DB-6), and the count of chunks over 2,000 characters (step 1's 512-token finding).
+- Verified: `./mvnw -o clean verify` green, 563 tests, 2 skipped (the Windows symlink skips). gitleaks clean on history (46 commits) and on `backend/src`. The first run failed because `SessionCookieTest` builds its own context without the fake. Indexing now needs an `EmbeddingPort`, so that context couldn't start; the test now imports `FakeEmbeddingConfiguration` too.

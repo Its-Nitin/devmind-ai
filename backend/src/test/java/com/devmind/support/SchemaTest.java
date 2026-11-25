@@ -7,6 +7,7 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 
@@ -72,7 +73,9 @@ class SchemaTest {
                         "file_blob",
                         "revision_file",
                         "code_symbol",
-                        "code_chunk");
+                        "code_chunk",
+                        "embedding_model",
+                        "chunk_embedding");
         assertThat(extensions).contains("vector", "pg_trgm", "citext");
     }
 
@@ -91,6 +94,14 @@ class SchemaTest {
                                                 search_tsv, token_estimate, chunker_version)
                         VALUES (?, ?, 5, 9, 'Owner.java', 'void find() {}', to_tsvector('simple', 'find'), 4, 'c1')
                         """).params(blobId, methodId).update();
+        long modelId = jdbc.sql("""
+                        INSERT INTO embedding_model (provider, model_name, dimensions, model_digest, created_at)
+                        VALUES ('fake', 'fake-embed', 1024, 'd1', now()) RETURNING id
+                        """).query(Long.class).single();
+        jdbc.sql("""
+                        INSERT INTO chunk_embedding (chunk_id, embedding_model_id, embedding)
+                        SELECT id, ?, array_fill(0.5::real, ARRAY[1024])::vector FROM code_chunk WHERE file_blob_id = ?
+                        """).params(modelId, blobId).update();
 
         jdbc.sql("DELETE FROM project WHERE id = ?").param(projectId).update();
 
@@ -103,6 +114,8 @@ class SchemaTest {
         assertThat(count("SELECT count(*) FROM code_symbol WHERE file_blob_id = ?", blobId))
                 .isZero();
         assertThat(count("SELECT count(*) FROM code_chunk WHERE file_blob_id = ?", blobId))
+                .isZero();
+        assertThat(count("SELECT count(*) FROM chunk_embedding WHERE embedding_model_id = ?", modelId))
                 .isZero();
     }
 
@@ -128,6 +141,35 @@ class SchemaTest {
         assertThatThrownBy(() -> insertSymbol(blobId, null, "CLASS", 5, 4))
                 .isInstanceOf(DataIntegrityViolationException.class);
         assertThatThrownBy(() -> insertSymbol(blobId, null, "PACKAGE", 1, 1))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
+    void embeddingsHaveTheSchemaDimensionAndOneVectorPerChunkAndModel() {
+        long blobId = insertBlob(insertProject());
+        jdbc.sql("""
+                        INSERT INTO code_chunk (file_blob_id, start_line, end_line, header, content, search_tsv,
+                                                token_estimate, chunker_version)
+                        VALUES (?, 1, 1, 'Owner.java', 'class Owner {}', to_tsvector('simple', 'owner'), 4, 'c1')
+                        """).param(blobId).update();
+        long modelId = jdbc.sql("""
+                        INSERT INTO embedding_model (provider, model_name, dimensions, model_digest, created_at)
+                        VALUES ('fake', 'fake-embed', 1024, 'd2', now()) RETURNING id
+                        """).query(Long.class).single();
+        String insert = """
+                INSERT INTO chunk_embedding (chunk_id, embedding_model_id, embedding)
+                SELECT id, ?, array_fill(0.5::real, ARRAY[?])::vector FROM code_chunk WHERE file_blob_id = ?""";
+
+        assertThatThrownBy(() -> jdbc.sql(insert).params(modelId, 768, blobId).update())
+                .as("DB-10: vector(1024)")
+                .isInstanceOf(DataAccessException.class);
+        jdbc.sql(insert).params(modelId, 1024, blobId).update();
+        assertThatThrownBy(() -> jdbc.sql(insert).params(modelId, 1024, blobId).update())
+                .isInstanceOf(DataIntegrityViolationException.class);
+        assertThatThrownBy(() -> jdbc.sql("""
+                                INSERT INTO embedding_model (provider, model_name, dimensions, model_digest, created_at)
+                                VALUES ('fake', 'fake-embed', 1024, 'd2', now())""").update())
+                .as("embedding_model_uk")
                 .isInstanceOf(DataIntegrityViolationException.class);
     }
 

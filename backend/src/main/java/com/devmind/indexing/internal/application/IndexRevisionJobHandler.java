@@ -1,12 +1,15 @@
 package com.devmind.indexing.internal.application;
 
+import com.devmind.ai.EmbeddingUnavailableException;
 import com.devmind.indexing.CodeParser;
 import com.devmind.indexing.ParseStatus;
 import com.devmind.indexing.ParsedFile;
 import com.devmind.indexing.internal.application.IndexBatch.Blob;
 import com.devmind.indexing.internal.application.IndexBatch.BlobKey;
 import com.devmind.indexing.internal.domain.RevisionStats;
+import com.devmind.indexing.internal.domain.RevisionStats.EmbeddingStats;
 import com.devmind.indexing.internal.domain.SymbolChunker;
+import com.devmind.indexing.internal.persistence.IndexingRows.ChunkText;
 import com.devmind.indexing.internal.persistence.IndexingRows.ExistingBlob;
 import com.devmind.indexing.internal.persistence.IndexingRows.Revision;
 import com.devmind.indexing.internal.persistence.IndexingRows.RevisionStatus;
@@ -39,15 +42,17 @@ import org.springframework.stereotype.Component;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Runs INDEX jobs (M2 step 7): snapshot, filter, parse, chunk and store a commit, batch by batch, then validate and
- * mark the revision READY. No transaction spans the run (SPRING-2); each batch commits on its own, and a retried run
- * resumes, because every write is an upsert and every stored blob is complete. Re-indexing a READY revision is a
- * no-op.
+ * Runs INDEX jobs (M2 step 7, M3 step 2): snapshot, filter, parse, chunk and store a commit, batch by batch, embed
+ * the chunks that have no vector for the active model, then validate and mark the revision READY. No transaction spans
+ * the run (SPRING-2); each batch commits on its own, and a retried run resumes, because every write is an upsert and
+ * every stored blob is complete. Re-indexing a READY revision is a no-op.
  */
 @Component
 class IndexRevisionJobHandler implements JobHandler {
 
     static final String PHASE = "files";
+
+    static final String EMBEDDING_PHASE = "embedding";
 
     private static final Logger log = LoggerFactory.getLogger(IndexRevisionJobHandler.class);
 
@@ -93,6 +98,10 @@ class IndexRevisionJobHandler implements JobHandler {
             case SnapshotOutcome.Opened(SourceSnapshot snapshot) -> {
                 try (snapshot) {
                     yield index(context, snapshot);
+                } catch (EmbeddingUnavailableException ex) {
+                    // The model server is down or lost the model; the retry resumes where this run stopped.
+                    log.warn("Embedding model unavailable ({}); the index job will retry", ex.code());
+                    yield JobOutcome.retryable(ex.code(), "The embedding model can't be reached right now.");
                 }
             }
         };
@@ -101,7 +110,8 @@ class IndexRevisionJobHandler implements JobHandler {
     private JobOutcome index(JobContext context, SourceSnapshot snapshot) {
         Instant started = clock.instant();
         long projectId = context.projectId();
-        Revision revision = writer.startRevision(projectId, snapshot.commitSha(), toolchain.configHash());
+        ActiveEmbeddingModel.Model model = toolchain.embedding().model();
+        Revision revision = writer.startRevision(projectId, snapshot.commitSha(), toolchain.configHash(model));
         if (revision.status() == RevisionStatus.READY) {
             log.info("Revision {} is already indexed; nothing to do", revision.id());
             return JobOutcome.succeeded();
@@ -132,7 +142,11 @@ class IndexRevisionJobHandler implements JobHandler {
                 }
             }
         }
-        return finish(projectId, revision.id(), snapshot.commitSha(), run, Duration.between(started, clock.instant()));
+        if (!embed(context, revision.id(), model, run)) {
+            return JobOutcome.retryable("lease-lost", "Another attempt took over the job.");
+        }
+        return finish(
+                projectId, revision.id(), snapshot.commitSha(), model, run, Duration.between(started, clock.instant()));
     }
 
     /** Parses and chunks the batch's new blobs outside any transaction, then writes it in one. */
@@ -171,19 +185,61 @@ class IndexRevisionJobHandler implements JobHandler {
         return toolchain.parserFor(language).map(CodeParser::version).orElse(IndexToolchain.NO_PARSER);
     }
 
+    /**
+     * Embeds the revision's chunks that have no vector for the model yet, a page at a time: the model call runs outside
+     * any transaction, then the page is written in a short one (SPRING-2). Chunks shared with earlier revisions, or
+     * embedded by an earlier attempt, are skipped, so a retried run resumes.
+     *
+     * @return false if the lease was lost
+     */
+    private boolean embed(JobContext context, long revisionId, ActiveEmbeddingModel.Model model, Run run) {
+        Instant started = clock.instant();
+        long total = writer.countUnembedded(revisionId, model.id());
+        long done = 0;
+        long after = 0;
+        context.progress(EMBEDDING_PHASE, 0, total);
+        while (true) {
+            List<ChunkText> page = writer.unembedded(revisionId, model.id(), after, properties.embeddingBatchSize());
+            if (page.isEmpty()) {
+                break;
+            }
+            List<float[]> vectors = toolchain
+                    .embedding()
+                    .embed(page.stream().map(ChunkText::embeddingText).toList());
+            run.embeddingsNew += writer.writeEmbeddings(
+                    model.id(), page.stream().map(ChunkText::id).toList(), vectors);
+            after = page.getLast().id();
+            done += page.size();
+            context.progress(EMBEDDING_PHASE, done, total);
+            if (!context.heartbeat()) {
+                return false;
+            }
+        }
+        run.embeddingMs = Duration.between(started, clock.instant()).toMillis();
+        return true;
+    }
+
     /** Validates the stored revision against what was kept, then marks it READY or FAILED with its stats. */
-    private JobOutcome finish(long projectId, long revisionId, String commitSha, Run run, Duration duration) {
-        RevisionTotals totals = writer.totals(revisionId);
-        String stats = json.writeValueAsString(stats(run, totals, duration));
-        if (totals.files() != run.ingestion.kept() || totals.unchunkedFiles() > 0) {
+    private JobOutcome finish(
+            long projectId,
+            long revisionId,
+            String commitSha,
+            ActiveEmbeddingModel.Model model,
+            Run run,
+            Duration duration) {
+        RevisionTotals totals = writer.totals(revisionId, model.id());
+        String stats = json.writeValueAsString(stats(run, totals, model, duration));
+        if (totals.files() != run.ingestion.kept() || totals.unchunkedFiles() > 0 || totals.unembeddedChunks() > 0) {
             writer.markFailed(revisionId, stats);
             log.error(
-                    "Revision {} is incomplete: {} of {} files stored, {} without chunks",
+                    "Revision {} is incomplete: {} of {} files stored, {} without chunks, {} chunks without embeddings",
                     revisionId,
                     totals.files(),
                     run.ingestion.kept(),
-                    totals.unchunkedFiles());
-            return JobOutcome.permanent("index-incomplete", "Indexing finished with missing files or chunks.");
+                    totals.unchunkedFiles(),
+                    totals.unembeddedChunks());
+            return JobOutcome.permanent(
+                    "index-incomplete", "Indexing finished with missing files, chunks or embeddings.");
         }
         writer.markReady(projectId, revisionId, commitSha, stats);
         log.info("Revision {} is ready: {}", revisionId, stats);
@@ -192,9 +248,10 @@ class IndexRevisionJobHandler implements JobHandler {
 
     /**
      * {@code repository_revision.stats}. Totals come from the database, so they're right however many attempts the
-     * run took; {@code blobsNew} and {@code blobsReused} describe the last attempt.
+     * run took; {@code blobsNew}, {@code blobsReused} and the embedding counts describe the last attempt.
      */
-    private static RevisionStats stats(Run run, RevisionTotals totals, Duration duration) {
+    private static RevisionStats stats(
+            Run run, RevisionTotals totals, ActiveEmbeddingModel.Model model, Duration duration) {
         Map<String, Integer> excluded = new LinkedHashMap<>();
         run.ingestion.excluded().forEach((ExclusionReason reason, Integer count) -> excluded.put(reason.key(), count));
         return new RevisionStats(
@@ -207,7 +264,12 @@ class IndexRevisionJobHandler implements JobHandler {
                 totals.parseFailures(),
                 totals.redactions(),
                 run.ingestion.encodingFallbacks(),
-                duration.toMillis());
+                duration.toMillis(),
+                new EmbeddingStats(
+                        model.key(),
+                        run.embeddingsNew,
+                        Math.max(0, totals.embeddedChunks() - run.embeddingsNew),
+                        run.embeddingMs));
     }
 
     /** Counters of one attempt. */
@@ -216,6 +278,8 @@ class IndexRevisionJobHandler implements JobHandler {
         private IngestionStats ingestion;
         private int blobsNew;
         private int blobsReused;
+        private long embeddingsNew;
+        private long embeddingMs;
 
         Run(IngestionStats ingestion) {
             this.ingestion = ingestion;

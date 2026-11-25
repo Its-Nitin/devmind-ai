@@ -1,12 +1,15 @@
 package com.devmind.indexing.internal.application;
 
+import com.devmind.ai.EmbeddingModelRef;
 import com.devmind.indexing.ParsedSymbol;
 import com.devmind.indexing.RevisionReadyEvent;
 import com.devmind.indexing.internal.application.IndexBatch.Blob;
 import com.devmind.indexing.internal.application.IndexBatch.BlobKey;
 import com.devmind.indexing.internal.domain.Chunk;
 import com.devmind.indexing.internal.domain.SymbolChunker;
+import com.devmind.indexing.internal.persistence.EmbeddingQueries;
 import com.devmind.indexing.internal.persistence.IndexingQueries;
+import com.devmind.indexing.internal.persistence.IndexingRows.ChunkText;
 import com.devmind.indexing.internal.persistence.IndexingRows.ExistingBlob;
 import com.devmind.indexing.internal.persistence.IndexingRows.NewBlob;
 import com.devmind.indexing.internal.persistence.IndexingRows.NewChunk;
@@ -29,19 +32,21 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * The index's transactions, each short (SPRING-2): starting a revision, one per batch of files, and finishing. A batch
- * writes a blob together with its symbols and chunks, so a stored blob is always complete, and a retried run can
- * treat every existing blob as done.
+ * The index's transactions, each short (SPRING-2): starting a revision, one per batch of files, one per batch of
+ * embeddings, and finishing. A file batch writes a blob together with its symbols and chunks, so a stored blob is
+ * always complete, and a retried run can treat every existing blob as done.
  */
 @Service
 class IndexWriter {
 
     private final IndexingQueries queries;
+    private final EmbeddingQueries embeddings;
     private final ApplicationEventPublisher events;
     private final Clock clock;
 
-    IndexWriter(IndexingQueries queries, ApplicationEventPublisher events, Clock clock) {
+    IndexWriter(IndexingQueries queries, EmbeddingQueries embeddings, ApplicationEventPublisher events, Clock clock) {
         this.queries = queries;
+        this.embeddings = embeddings;
         this.events = events;
         this.clock = clock;
     }
@@ -145,8 +150,35 @@ class IndexWriter {
     }
 
     @Transactional(readOnly = true)
-    RevisionTotals totals(long revisionId) {
-        return queries.totals(revisionId);
+    RevisionTotals totals(long revisionId, long embeddingModelId) {
+        return queries.totals(revisionId, embeddingModelId);
+    }
+
+    /** Registers the embedding model unless it exists; returns its ID. */
+    @Transactional
+    long registerEmbeddingModel(EmbeddingModelRef model) {
+        return embeddings.registerModel(model, clock.instant());
+    }
+
+    @Transactional(readOnly = true)
+    long countUnembedded(long revisionId, long modelId) {
+        return embeddings.countUnembedded(revisionId, modelId);
+    }
+
+    /** The next page of the revision's chunks without a vector for the model, in ID order after {@code after}. */
+    @Transactional(readOnly = true)
+    List<ChunkText> unembedded(long revisionId, long modelId, long after, int limit) {
+        return embeddings.unembedded(revisionId, modelId, after, limit);
+    }
+
+    /**
+     * Stores one embedded batch in one short transaction; the model call happened before it (SPRING-2).
+     *
+     * @return how many vectors were inserted
+     */
+    @Transactional
+    int writeEmbeddings(long modelId, List<Long> chunkIds, List<float[]> vectors) {
+        return embeddings.insert(modelId, chunkIds, vectors);
     }
 
     /**

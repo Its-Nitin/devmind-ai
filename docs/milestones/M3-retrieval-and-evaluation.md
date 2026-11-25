@@ -15,7 +15,7 @@
 
 | # | Step | PR | Time | Done |
 |---|---|---|---|---|
-| 1 | `ai` module: `EmbeddingPort` + Ollama adapter + fake | `feat/ai-embedding-port` | 2 h | ☐ |
+| 1 | `ai` module: `EmbeddingPort` + Ollama adapter + fake | `feat/ai-embedding-port` | 2 h | ☑ |
 | 2 | Embedding schema + embedding phase in indexing | `feat/indexing-embeddings` | 2–3 h | ☐ |
 | 3 | Retrievers: lexical, vector, symbol | `feat/retrieval-retrievers` | 3 h | ☐ |
 | 4 | Fusion, packing, `RetrievalApi`, debug endpoint | `feat/retrieval-fusion` | 2 h | ☐ |

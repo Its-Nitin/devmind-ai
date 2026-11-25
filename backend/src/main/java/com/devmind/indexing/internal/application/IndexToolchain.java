@@ -20,16 +20,12 @@ class IndexToolchain {
 
     private final List<CodeParser> parsers;
     private final IngestionPipeline pipeline;
-    private final String configHash;
+    private final ActiveEmbeddingModel embedding;
 
-    IndexToolchain(List<CodeParser> parsers, IngestionPipeline pipeline) {
+    IndexToolchain(List<CodeParser> parsers, IngestionPipeline pipeline, ActiveEmbeddingModel embedding) {
         this.parsers = List.copyOf(parsers);
         this.pipeline = pipeline;
-        this.configHash = IndexConfigHash.of(
-                parsers.stream().map(CodeParser::version).toList(),
-                SymbolChunker.VERSION,
-                pipeline.rulesVersion(),
-                IndexConfigHash.NO_EMBEDDINGS);
+        this.embedding = embedding;
     }
 
     IngestionPipeline pipeline() {
@@ -41,8 +37,26 @@ class IndexToolchain {
         return parsers.stream().filter(parser -> parser.supports(language)).findFirst();
     }
 
-    /** {@code index_config_hash}: 64 lowercase hex characters. */
+    /** The embedding model, resolved on first use; see {@link ActiveEmbeddingModel#model()} for what it throws. */
+    ActiveEmbeddingModel embedding() {
+        return embedding;
+    }
+
+    /**
+     * {@code index_config_hash} under the active embedding model: 64 lowercase hex characters.
+     *
+     * @throws com.devmind.ai.EmbeddingUnavailableException if the model server can't tell which model it serves
+     */
     String configHash() {
-        return configHash;
+        return configHash(embedding.model());
+    }
+
+    /** {@code index_config_hash} under {@code model}. */
+    String configHash(ActiveEmbeddingModel.Model model) {
+        return IndexConfigHash.of(
+                parsers.stream().map(CodeParser::version).toList(),
+                SymbolChunker.VERSION,
+                pipeline.rulesVersion(),
+                model.key());
     }
 }

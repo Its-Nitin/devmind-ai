@@ -10,11 +10,14 @@ import java.util.UUID;
 /** A {@link JobContext} for running a handler directly; can simulate a worker dying after N heartbeats. */
 final class FakeJobContext implements JobContext {
 
+    /** One progress report. */
+    record Report(String phase, long done, long total) {}
+
     private final JobId jobId = new JobId(UUID.randomUUID());
     private final long projectId;
     private final Map<String, Object> payload;
     private final int crashAtHeartbeat;
-    private final List<Long> progress = new ArrayList<>();
+    private final List<Report> reports = new ArrayList<>();
     private int heartbeats;
 
     private FakeJobContext(long projectId, Map<String, Object> payload, int crashAtHeartbeat) {
@@ -32,9 +35,14 @@ final class FakeJobContext implements JobContext {
         return new FakeJobContext(projectId, payload, n);
     }
 
-    /** The {@code done} value of every progress report, in order. */
-    List<Long> progress() {
-        return List.copyOf(progress);
+    /** Every progress report of {@code phase}, in order. */
+    List<Report> progress(String phase) {
+        return reports.stream().filter(report -> report.phase().equals(phase)).toList();
+    }
+
+    /** The phases reported, in order of their first report. */
+    List<String> phases() {
+        return reports.stream().map(Report::phase).distinct().toList();
     }
 
     @Override
@@ -59,7 +67,7 @@ final class FakeJobContext implements JobContext {
 
     @Override
     public void progress(String phase, long done, long total) {
-        progress.add(done);
+        reports.add(new Report(phase, done, total));
     }
 
     @Override

@@ -47,11 +47,29 @@ public final class IndexingRows {
     /** One path of a revision and the blob it holds. */
     public record RevisionFile(String path, long blobId) {}
 
+    /** A chunk still to embed: its ID and the text the embedding model sees. */
+    public record ChunkText(long id, String header, String content) {
+
+        /** {@code header + "\n" + content} (M3 step 2), so the vector knows the file and symbol the code is in. */
+        public String embeddingText() {
+            return header + "\n" + content;
+        }
+    }
+
     /**
      * What a revision holds, counted from the database, so the numbers are right however many attempts it took.
      *
      * @param unchunkedFiles non-empty files without a single chunk; any is an indexing bug
+     * @param embeddedChunks distinct chunks of the revision with an embedding for the active model
+     * @param unembeddedChunks distinct chunks of the revision without one; any makes the revision incomplete
      */
     public record RevisionTotals(
-            long files, long parseFailures, long redactions, long unchunkedFiles, long symbols, long chunks) {}
+            long files,
+            long parseFailures,
+            long redactions,
+            long unchunkedFiles,
+            long symbols,
+            long chunks,
+            long embeddedChunks,
+            long unembeddedChunks) {}
 }

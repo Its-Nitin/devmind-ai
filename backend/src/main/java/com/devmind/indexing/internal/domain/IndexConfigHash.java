@@ -15,12 +15,14 @@ import java.util.stream.Stream;
  */
 public final class IndexConfigHash {
 
-    /** No embeddings until M3. */
-    public static final String NO_EMBEDDINGS = "none";
-
     private IndexConfigHash() {}
 
-    /** Returns the SHA-256, as 64 lowercase hex characters, of the versions joined in a fixed order. */
+    /**
+     * Returns the SHA-256, as 64 lowercase hex characters, of the versions joined in a fixed order.
+     *
+     * @param embeddingModel the embedding model's identity, {@code provider/name@digest} (M2 revisions used {@code
+     *     none})
+     */
     public static String of(
             List<String> parserVersions, String chunkerVersion, String filterRulesVersion, String embeddingModel) {
         String parsers = parserVersions.stream().sorted().collect(Collectors.joining(","));

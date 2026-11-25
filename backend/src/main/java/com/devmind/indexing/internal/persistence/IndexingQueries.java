@@ -93,7 +93,15 @@ public class IndexingQueries {
                                       AND NOT EXISTS (SELECT 1 FROM code_chunk c WHERE c.file_blob_id = b.id))
                        AS unchunked,
                    coalesce(sum((SELECT count(*) FROM code_symbol s WHERE s.file_blob_id = b.id)), 0) AS symbols,
-                   coalesce(sum((SELECT count(*) FROM code_chunk c WHERE c.file_blob_id = b.id)), 0) AS chunks
+                   coalesce(sum((SELECT count(*) FROM code_chunk c WHERE c.file_blob_id = b.id)), 0) AS chunks,
+                   (SELECT count(*) FROM code_chunk c
+                     WHERE c.file_blob_id IN (SELECT file_blob_id FROM revision_file WHERE revision_id = :revisionId)
+                       AND EXISTS (SELECT 1 FROM chunk_embedding e
+                                    WHERE e.chunk_id = c.id AND e.embedding_model_id = :modelId)) AS embedded,
+                   (SELECT count(*) FROM code_chunk c
+                     WHERE c.file_blob_id IN (SELECT file_blob_id FROM revision_file WHERE revision_id = :revisionId)
+                       AND NOT EXISTS (SELECT 1 FROM chunk_embedding e
+                                        WHERE e.chunk_id = c.id AND e.embedding_model_id = :modelId)) AS unembedded
               FROM revision_file rf
               JOIN file_blob b ON b.id = rf.file_blob_id
              WHERE rf.revision_id = :revisionId""";
@@ -268,16 +276,20 @@ public class IndexingQueries {
                         .toArray(SqlParameterSource[]::new));
     }
 
-    public RevisionTotals totals(long revisionId) {
+    /** Counts the revision's rows; embeddings are counted for {@code embeddingModelId}. */
+    public RevisionTotals totals(long revisionId, long embeddingModelId) {
         return jdbc.sql(REVISION_TOTALS)
                 .param("revisionId", revisionId)
+                .param("modelId", embeddingModelId)
                 .query((rs, row) -> new RevisionTotals(
                         rs.getLong("files"),
                         rs.getLong("parse_failures"),
                         rs.getLong("redactions"),
                         rs.getLong("unchunked"),
                         rs.getLong("symbols"),
-                        rs.getLong("chunks")))
+                        rs.getLong("chunks"),
+                        rs.getLong("embedded"),
+                        rs.getLong("unembedded")))
                 .single();
     }
 

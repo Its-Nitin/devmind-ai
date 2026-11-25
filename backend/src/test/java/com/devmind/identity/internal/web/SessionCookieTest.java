@@ -3,6 +3,7 @@ package com.devmind.identity.internal.web;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.devmind.identity.internal.application.UserRegistrationService;
+import com.devmind.support.FakeEmbeddingConfiguration;
 import com.devmind.support.TestcontainersConfiguration;
 import java.util.List;
 import java.util.Objects;
@@ -26,7 +27,7 @@ import org.springframework.test.web.servlet.client.RestTestClient;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestTestClient
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FakeEmbeddingConfiguration.class})
 @ActiveProfiles("test")
 class SessionCookieTest {
 

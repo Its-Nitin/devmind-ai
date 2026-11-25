@@ -14,6 +14,7 @@ devmind:
     worker-enabled: false
   indexing:
     batch-size: 2 # small fixtures still cross batch boundaries (resume-after-crash tests)
+    embedding-batch-size: 3
   ingestion:
     allowed-roots: ["${java.io.tmpdir}"] # JUnit @TempDir fixture repositories live under it
     clone-directory: ${java.io.tmpdir}/devmind-test-clones
